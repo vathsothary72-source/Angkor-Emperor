@@ -21,17 +21,144 @@ const PLAN_BY_PRICE: Record<number, string> = {
 // ==========================================
 // 1. GENERATE KHQR PAYMENT CODE
 // ==========================================
-app.post('/api/payment/khqr/generate', (req, res) => {
-  const { plan } = req.body;
-  
-  if (!plan || !PRICING[plan as keyof typeof PRICING]) {
-    return res.status(400).json({ error: 'Invalid plan selected' });
+// PaymentCheckout.tsx (Server Route)
+
+// PaymentCheckout.tsx (Server Route)
+
+app.post('/api/payment/checkout', async (req, res) => {
+  try {
+    const { plan, transactionId, amount, reference, paymentMethod } = req.body;
+
+    // ==========================================
+    // 1. VALIDATE INPUT
+    // ==========================================
+    if (!plan || !transactionId || !amount) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const validPlans = ['starter', 'pro', 'enterprise', 'lifetime'];
+    if (!validPlans.includes(plan)) {
+      return res.status(400).json({ error: 'Invalid plan selected' });
+    }
+
+    // ==========================================
+    // 2. VERIFY TRANSACTION (Anti-Fraud)
+    // ==========================================
+    // ពិនិត្យមើលថា Transaction ID មិនទាន់ត្រូវបានប្រើពីមុន
+    const existing = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT id FROM licenses WHERE metadata LIKE ? AND is_active = 1',
+        [`%${transactionId}%`],
+        (err, row) => {
+          if (err) reject(err);
+          resolve(row);
+        }
+      );
+    });
+
+    if (existing) {
+      return res.status(409).json({ error: 'Transaction already used' });
+    }
+
+    // ==========================================
+    // 3. GENERATE LICENSE KEY (Cryptographic)
+    // ==========================================
+    const licenseKey = generateLicenseKey(); // Function ដើម
+
+    // ==========================================
+    // 4. CALCULATE EXPIRY & DEVICES
+    // ==========================================
+    let expiresAt: string | null = null;
+    let maxDevices: number = 1;
+
+    switch (plan) {
+      case 'starter':
+        expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        maxDevices = 1;
+        break;
+      case 'pro':
+        expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+        maxDevices = 3;
+        break;
+      case 'enterprise':
+        expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+        maxDevices = 10;
+        break;
+      case 'lifetime':
+        expiresAt = null; // Unlimited
+        maxDevices = 5;
+        break;
+      default:
+        expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        maxDevices = 1;
+    }
+
+    // ==========================================
+    // 5. SAVE TO DATABASE
+    // ==========================================
+    const metadata = JSON.stringify({
+      payment: {
+        transactionId,
+        amount,
+        reference: reference || 'N/A',
+        method: paymentMethod || 'KHQR',
+        paidAt: new Date().toISOString(),
+      },
+      plan,
+      issuedBy: 'Super Admin',
+    });
+
+    db.run(
+      `INSERT INTO licenses (license_key, plan, max_devices, expires_at, is_active, metadata)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [licenseKey, plan, maxDevices, expiresAt, 1, metadata],
+      function (err) {
+        if (err) {
+          console.error('License generation error:', err);
+          return res.status(500).json({ error: 'Failed to generate license' });
+        }
+
+        // ==========================================
+        // 6. AUDIT LOG
+        // ==========================================
+        logAudit(licenseKey, 'payment_success', req.ip, req.headers['user-agent'], {
+          transactionId,
+          amount,
+          plan,
+          maxDevices,
+          expiresAt,
+        });
+
+        // ==========================================
+        // 7. SEND EMAIL (ស្រេចចិត្ត)
+        // ==========================================
+        // sendEmail({
+        //   to: customerEmail,
+        //   subject: 'Your Angkor Emperor License',
+        //   body: `License Key: ${licenseKey}\nPlan: ${plan}\nDevices: ${maxDevices}\nExpires: ${expiresAt || 'Lifetime'}`,
+        // });
+
+        // ==========================================
+        // 8. RESPONSE
+        // ==========================================
+        res.json({
+          success: true,
+          license: {
+            key: licenseKey,
+            plan,
+            maxDevices,
+            expiresAt,
+            amount,
+          },
+          message: 'Payment confirmed! License issued successfully!',
+        });
+      }
+    );
+  } catch (error) {
+    console.error('Checkout error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  const amount = PRICING[plan as keyof typeof PRICING];
-  const merchantId = process.env.KHQR_MERCHANT_ID || '010405530';
-  const merchantName = process.env.KHQR_MERCHANT_NAME || 'KEM CHAN SOPHEAKTRA';
-
+});
   // ISO 20022 KHQR Payload
   const payload = {
     merchantId,
