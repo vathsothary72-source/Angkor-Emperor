@@ -46,18 +46,23 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// 2. Gemini AI Assistant endpoint for Super Admin
+// បន្ថែមកូដនេះនៅក្នុង route /api/gemini/assistant
 app.post("/api/gemini/assistant", async (req, res) => {
   try {
-    const { prompt, history, contextData } = req.body;
-
-    if (!prompt || typeof prompt !== "string") {
-      return res.status(400).json({ error: "A valid prompt is required." });
+    const { prompt } = req.body;
+    
+    // ប្រសិនបើគ្មាន API Key ប្រើ Mock Response
+    if (!process.env.GEMINI_API_KEY) {
+      return res.json({
+        reply: `[MOCK AI] សួស្តី! ខ្ញុំជា AI Assistant (Mock Mode)។ អ្នកបានសួរថា: "${prompt}"\n\nសូមកំណត់ GEMINI_API_KEY ក្នុង .env.local ដើម្បីប្រើ AI ពិតប្រាកដ។`
+      });
     }
-
-    const ai = getGeminiClient();
-
-    const systemInstruction = `
+    
+    // ... កូដ Gemini ដើម ...
+  } catch (error) {
+    // ...
+  }
+});
 You are the Official AI Security & Intelligence Advisor for "Angkor Cyber Defense Suite (Zero-Trust Kernel Mode Architecture)".
 The Official Commercial Payment & Licensing Channels are:
 - Official 1-Tap ABA Pay Link: https://pay.ababank.com/oRF8/c49y1xuy
