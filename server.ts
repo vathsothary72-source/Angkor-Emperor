@@ -1,80 +1,164 @@
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
-import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
-import dotenv from "dotenv";
+// ==========================================
+// KHQR PAYMENT - AUTOMATIC LICENSE ISSUE
+// ==========================================
 
-dotenv.config();
+// តម្លៃកញ្ចប់ (ជាដុល្លារ)
+const PRICING = {
+  starter: 9.99,
+  pro: 79.99,
+  lifetime: 149.00,
+  enterprise: 299.00
+};
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// ផែនទីប្លង់តាមតម្លៃ
+const PLAN_BY_PRICE: Record<number, string> = {
+  9.99: 'starter',
+  79.99: 'pro',
+  149.00: 'lifetime',
+  299.00: 'enterprise'
+};
 
-const app = express();
-const PORT = 3000;
-
-app.use(express.json({ limit: "10mb" }));
-
-// Lazy initializer for Google Gen AI
-let aiClient: GoogleGenAI | null = null;
-function getGeminiClient(): GoogleGenAI {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY environment variable is missing.");
+// ==========================================
+// 1. GENERATE KHQR PAYMENT CODE
+// ==========================================
+app.post('/api/payment/khqr/generate', (req, res) => {
+  const { plan } = req.body;
+  
+  if (!plan || !PRICING[plan as keyof typeof PRICING]) {
+    return res.status(400).json({ error: 'Invalid plan selected' });
   }
-  if (!aiClient) {
-    aiClient = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build",
-        },
-      },
-    });
-  }
-  return aiClient;
-}
 
-// 1. Health check
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "online",
-    system: "Angkor Emperor Armor 5D Kernel",
-    version: "8.0-IMMORTAL",
-    geminiConfigured: !!process.env.GEMINI_API_KEY,
+  const amount = PRICING[plan as keyof typeof PRICING];
+  const merchantId = process.env.KHQR_MERCHANT_ID || '010405530';
+  const merchantName = process.env.KHQR_MERCHANT_NAME || 'KEM CHAN SOPHEAKTRA';
+
+  // ISO 20022 KHQR Payload
+  const payload = {
+    merchantId,
+    merchantName,
+    amount: amount,
+    currency: 'USD',
+    merchantCity: 'Phnom Penh',
+    countryCode: 'KH',
     timestamp: new Date().toISOString(),
+    reference: `LICENSE-${plan.toUpperCase()}-${Date.now()}`
+  };
+
+  const qrData = Buffer.from(JSON.stringify(payload)).toString('base64');
+
+  res.json({
+    success: true,
+    plan,
+    amount,
+    currency: 'USD',
+    qrData,
+    payload,
+    // បន្ថែម QR Code SVG ដើម្បីបង្ហាញភ្លាម
+    qrImage: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`
   });
 });
 
-// បន្ថែមកូដនេះនៅក្នុង route /api/gemini/assistant
-app.post("/api/gemini/assistant", async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    
-    // ប្រសិនបើគ្មាន API Key ប្រើ Mock Response
-    if (!process.env.GEMINI_API_KEY) {
-      return res.json({
-        reply: `[MOCK AI] សួស្តី! ខ្ញុំជា AI Assistant (Mock Mode)។ អ្នកបានសួរថា: "${prompt}"\n\nសូមកំណត់ GEMINI_API_KEY ក្នុង .env.local ដើម្បីប្រើ AI ពិតប្រាកដ។`
+// ==========================================
+// 2. CONFIRM PAYMENT (Webhook / Callback)
+// ==========================================
+app.post('/api/payment/confirm', (req, res) => {
+  const { reference, transactionId, amount, status } = req.body;
+
+  // ក្នុងការអនុវត្តជាក់ស្តែង គួរតែផ្ទៀងផ្ទាត់ជាមួយ API ធនាគារ
+  // ប៉ុន្តែសម្រាប់ការសាកល្បង យើងប្រើ Mock
+  
+  if (status !== 'success' && status !== 'COMPLETED') {
+    return res.status(400).json({ error: 'Payment not completed' });
+  }
+
+  // កំណត់ប្លង់តាមចំនួនទឹកប្រាក់
+  const plan = PLAN_BY_PRICE[amount];
+  if (!plan) {
+    return res.status(400).json({ error: 'Invalid payment amount' });
+  }
+
+  // បង្កើត License Key
+  const licenseKey = generateLicenseKey();
+  const expiresAt = plan === 'lifetime' 
+    ? null 
+    : new Date(Date.now() + (plan === 'starter' ? 30 : 365) * 24 * 60 * 60 * 1000).toISOString();
+
+  const maxDevices = plan === 'starter' ? 1 : plan === 'pro' ? 3 : plan === 'lifetime' ? 5 : 10;
+
+  db.run(`INSERT INTO licenses (license_key, plan, max_devices, expires_at, is_active, metadata)
+          VALUES (?, ?, ?, ?, ?, ?)`,
+    [licenseKey, plan, maxDevices, expiresAt, 1, JSON.stringify({ 
+      payment: { transactionId, amount, reference, paidAt: new Date().toISOString() }
+    })],
+    function(err) {
+      if (err) {
+        console.error('License generation error:', err);
+        return res.status(500).json({ error: 'Failed to generate license' });
+      }
+
+      logAudit(licenseKey, 'payment_success', req.ip, req.headers['user-agent'], { 
+        transactionId, 
+        amount, 
+        plan 
+      });
+
+      res.json({
+        success: true,
+        license: {
+          key: licenseKey,
+          plan,
+          maxDevices,
+          expiresAt,
+          amount
+        },
+        message: 'Payment confirmed! License issued successfully.'
       });
     }
-    
-    // ... កូដ Gemini ដើម ...
-  } catch (error) {
-    // ...
-  }
+  );
 });
-You are the Official AI Security & Intelligence Advisor for "Angkor Cyber Defense Suite (Zero-Trust Kernel Mode Architecture)".
-The Official Commercial Payment & Licensing Channels are:
-- Official 1-Tap ABA Pay Link: https://pay.ababank.com/oRF8/c49y1xuy
-- Bank Account Number: 061444866 (ABA Bank / Bakong KHQR)
-- Official Support: @AngkorEmperor (Telegram)
 
-Your mission:
-1. Provide deep technical security analysis, threat mitigation (Ring 0 Kernel, Anti-Cheat, Anti-Debug, Memory Integrity, HWID locking, DirectX 12 hook detection, Network Packet encryption, and HMAC token validation).
-2. Assist Super Admin in managing lifetime licenses, hardware permissions, customer access controls (RBAC), and server health optimization.
-3. Answer inquiries clearly in professional English or Khmer with authoritative, high-grade cybersecurity and enterprise administration expertise.
-4. STRICT RULE: DO NOT use any emojis in your response. Keep tone strictly professional, robust, and technical.
-5. If customer purchase assistance is requested, provide the official link (https://pay.ababank.com/oRF8/c49y1xuy) and Bank Account (061444866).
+// ==========================================
+// 3. SIMULATE PAYMENT (សម្រាប់សាកល្បង)
+// ==========================================
+app.post('/api/payment/simulate', (req, res) => {
+  const { plan } = req.body;
+
+  if (!plan || !PRICING[plan as keyof typeof PRICING]) {
+    return res.status(400).json({ error: 'Invalid plan selected' });
+  }
+
+  const amount = PRICING[plan as keyof typeof PRICING];
+  const reference = `SIM-${plan.toUpperCase()}-${Date.now()}`;
+  const transactionId = `TXN-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
+
+  // ក្លែងធ្វើការទូទាត់ជោគជ័យ
+  setTimeout(() => {
+    // ហៅ Webhook Confirm
+    fetch(`http://localhost:${PORT}/api/payment/confirm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reference,
+        transactionId,
+        amount,
+        status: 'success'
+      })
+    }).then(response => response.json())
+      .then(data => {
+        console.log('Payment confirmed:', data);
+      })
+      .catch(err => console.error('Webhook error:', err));
+  }, 2000);
+
+  res.json({
+    success: true,
+    message: 'Payment simulation started. License will be issued shortly.',
+    reference,
+    transactionId,
+    amount,
+    plan
+  });
+});
 
 System Context:
 ${contextData ? JSON.stringify(contextData) : "Standard Super Admin Armor Engine"}
