@@ -1,0 +1,6 @@
+{
+  "name": "Angkor Cyber Defense Suite",
+  "description": "Angkor Cyber Defense Console with Zero-Trust Threat Intelligence, Universal Game Protection",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
