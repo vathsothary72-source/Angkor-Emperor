@@ -30,8 +30,10 @@ interface GoogleAuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUser: GoogleAuthUser | null;
-  onSignInSuccess: (user: GoogleAuthUser) => void;
+  onSignInSuccess?: (user: GoogleAuthUser) => void;
+  onSignIn?: (user: GoogleAuthUser) => void;
   onSignOut: () => void;
+  activeTheme?: any;
 }
 
 export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
@@ -39,6 +41,7 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
   onClose,
   currentUser,
   onSignInSuccess,
+  onSignIn,
   onSignOut
 }) => {
   const [selectedEmail, setSelectedEmail] = useState('v***@***.com');
@@ -49,11 +52,20 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
 
   if (!isOpen) return null;
 
+  const dispatchSignIn = (user: GoogleAuthUser) => {
+    if (typeof onSignIn === 'function') {
+      onSignIn(user);
+    }
+    if (typeof onSignInSuccess === 'function') {
+      onSignInSuccess(user);
+    }
+  };
+
   const handleQuickGoogleSignIn = (maskedEmail: string, fullEmail: string, name: string, role: 'Super Admin' | 'Operator' | 'Client') => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      onSignInSuccess({
+      dispatchSignIn({
         email: fullEmail,
         maskedEmail: maskedEmail,
         name: name,
@@ -73,7 +85,7 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({
 
     setTimeout(() => {
       setIsLoading(false);
-      onSignInSuccess({
+      dispatchSignIn({
         email: customEmail,
         maskedEmail: masked,
         name: customName.trim() || 'Enterprise Operator',

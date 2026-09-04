@@ -73,14 +73,14 @@ export interface SystemStats {
 }
 
 export interface ClientPermission {
-  canViewTelemetry: boolean;       // បើកមើល Game Alpha8 Live Telemetry & 144 FPS
-  canViewThreatLogs: boolean;      // បើកមើល Threat Intelligence & Blocked IPs
-  canDownloadInstaller: boolean;   // បើកសិទ្ធិទាញយក Desktop Setup .exe / Portable Runner
-  canUseOfflineMode: boolean;      // បើកសិទ្ធិដំណើរការ Offline (24h Hardware Token)
-  canSwitchHardware: boolean;      // បើកសិទ្ធិ Reset / Switch HWID ដោយខ្លួនឯង
-  canAccessKernelDriver: boolean;  // បើកដំណើរការ Ring 0 Kernel Anti-Cheat Shield
-  canViewSecurityAudit: boolean;   // បើកមើលរបាយការណ៍វិភាគកម្រិតខ្លាំង & ខ្សោយ
-  canGenerateSubKeys: boolean;     // បើកសិទ្ធិចេញ Sub-License Keys
+  canViewTelemetry: boolean;       // Enable Game Alpha8 Live Telemetry & 144 FPS
+  canViewThreatLogs: boolean;      // Enable Threat Intelligence & Blocked IPs
+  canDownloadInstaller: boolean;   // Enable Desktop Setup .exe / Portable Runner download
+  canUseOfflineMode: boolean;      // Enable Offline Mode (24h Hardware Token)
+  canSwitchHardware: boolean;      // Enable Reset / Switch HWID self-service
+  canAccessKernelDriver: boolean;  // Enable Ring 0 Kernel Anti-Cheat Shield
+  canViewSecurityAudit: boolean;   // Enable Security Audit strengths & weaknesses report
+  canGenerateSubKeys: boolean;     // Enable Sub-License Keys generation
 }
 
 export interface ClientUser {
@@ -88,7 +88,7 @@ export interface ClientUser {
   name: string;
   email: string;
   phone?: string;
-  role: 'super_admin' | 'enterprise_client' | 'vip_gamer' | 'standard_client';
+  role: 'super_admin' | 'enterprise_client' | 'vip_gamer' | 'standard_client' | 'owner';
   status: 'active' | 'suspended' | 'pending_approval' | 'read_only';
   assignedLicenseKey: string;
   hwidBound?: string;
@@ -96,5 +96,28 @@ export interface ClientUser {
   createdAt: string;
   lastLogin: string;
   rating?: number; // 1-5 Star VIP rating
+}
+
+export interface GoogleUser {
+  name: string;
+  email: string;
+  role: string;
+  avatarUrl: string;
+  idToken: string;
+  signedInAt: string;
+}
+
+export interface ToolVisibilitySettings {
+  showStore: boolean;
+  showLicenses: boolean;
+  showBanking: boolean;
+  showGenerateKey: boolean;
+  showKhqrModal: boolean;
+  showDownloadZip: boolean;
+  showClientTester: boolean;
+  showGeminiAi: boolean;
+  showAlpha8: boolean;
+  showSecurityAudit: boolean;
+  showSuperAdmin: boolean;
 }
 

@@ -3,9 +3,10 @@
 @layer base {
   body {
     font-family: 'Kantumruy Pro', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: radial-gradient(circle at 50% 0%, #20170A 0%, #0D0904 40%, #030202 100%);
-    color: #FFF2D1;
+    background: radial-gradient(circle at 50% 0%, #152207 0%, #0B1204 40%, #040702 100%);
+    color: #F4FFE0;
     min-height: 100vh;
+    font-weight: 600;
   }
   
   code, pre, .font-mono {
@@ -43,7 +44,7 @@
   --text-gold-light: #FFF8E1;
 }
 
-/* ពណ៌ត្រួយចេក Neon Lime Banner & RGB Glowing Multi-color Flow */
+/* Neon Lime Banner & RGB Glowing Multi-color Flow */
 .bg-truoy-chek {
   background-color: #CCFF00;
   background-image: linear-gradient(90deg, #CCFF00 0%, #D8FF1A 50%, #BFFF00 100%);
@@ -564,7 +565,7 @@
 }
 
 /* ==========================================================================
-   NIGHTCLUB RGB AMBIENT LIGHTING & DYNAMIC CLUB LASER EFFECTS (ផ្ទៃក្រោយភ្លើងក្លឹប)
+   NIGHTCLUB RGB AMBIENT LIGHTING & DYNAMIC CLUB LASER EFFECTS
    ========================================================================== */
 
 @keyframes clubRgbFlow {

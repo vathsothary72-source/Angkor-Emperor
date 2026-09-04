@@ -1,9 +1,9 @@
 import React from 'react';
-import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, X, AlertTriangle } from 'lucide-react';
 
 export interface ToastMessage {
   id: number;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'info' | 'warning';
   title: string;
   message?: string;
 }
@@ -21,18 +21,34 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismis
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="pointer-events-auto flex items-start gap-3 p-4 bg-[#0C0C0C] border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.8)] text-xs text-white animate-fadeIn"
+          className={`pointer-events-auto flex items-start gap-3 p-4 bg-[#0C0C0C] border ${
+            toast.type === 'warning'
+              ? 'border-[#F59E0B]/60 shadow-[0_10px_30px_rgba(245,158,11,0.25)]'
+              : toast.type === 'error'
+              ? 'border-[#FF3B30]/50 shadow-[0_10px_30px_rgba(255,59,48,0.2)]'
+              : toast.type === 'success'
+              ? 'border-[#E0FF00]/50 shadow-[0_10px_30px_rgba(224,255,0,0.2)]'
+              : 'border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.8)]'
+          } text-xs text-white animate-fadeIn`}
         >
           <div className="shrink-0 mt-0.5">
             {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-[#E0FF00]" />}
             {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-[#FF3B30]" />}
             {toast.type === 'info' && <Info className="w-4 h-4 text-[#40C4FF]" />}
+            {toast.type === 'warning' && <AlertTriangle className="w-4 h-4 text-[#F59E0B] animate-pulse" />}
           </div>
 
           <div className="flex-1">
-            <h5 className="font-bold text-white font-mono uppercase tracking-wider text-[11px]">{toast.title}</h5>
+            <div className="flex items-center gap-2">
+              <h5 className="font-bold text-white font-mono uppercase tracking-wider text-[11px]">{toast.title}</h5>
+              {toast.type === 'warning' && (
+                <span className="px-1.5 py-0.5 text-[8px] font-mono font-black uppercase tracking-wider bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40 rounded-none">
+                  7-Day Alert
+                </span>
+              )}
+            </div>
             {toast.message && (
-              <p className="text-white/70 mt-1 leading-relaxed text-xs">{toast.message}</p>
+              <p className="text-white/80 mt-1 leading-relaxed text-xs font-sans">{toast.message}</p>
             )}
           </div>
 

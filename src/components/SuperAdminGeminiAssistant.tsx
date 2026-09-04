@@ -188,11 +188,11 @@ Verified Support Node:
 
             <h2 className="text-lg lg:text-xl font-black text-white font-mono uppercase tracking-wider flex items-center gap-2">
               <Bot className="w-5 h-5 text-[#CCFF00]" />
-              <span>AI SECURITY ASSISTANT • 5D THREAT ADVISOR</span>
+              <span>Ai Menimi (Gemini 2.5) • 5D THREAT & SECURITY ADVISOR</span>
             </h2>
 
-            <p className="text-xs text-[#F5E8C7]/80 max-w-3xl leading-relaxed font-sans">
-              Enterprise AI security telemetry and kernel audit assistant powered by server-side Gemini intelligence for real-time threat response and system hardening.
+            <p className="text-xs text-[#F4FFE0]/90 max-w-3xl leading-relaxed font-sans">
+              Artificial intelligence assistant <strong>Ai Menimi</strong> powered by Gemini 2.5 provides Ring 0 kernel analysis, 144+ FPS esports optimization, and instant 24/7 technical security responses.
             </p>
           </div>
 

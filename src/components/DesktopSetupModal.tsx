@@ -302,7 +302,7 @@ PAYMENT GATEWAY & RECHARGE:
                 </div>
 
                 <p className="text-white/70 font-sans leading-relaxed">
-                  កញ្ចប់ ZIP ពេញលេញនេះ រួមមាន <strong>install.bat</strong> (សម្រាប់ Windows 1-Click Install), <strong>install.sh</strong> (សម្រាប់ Linux/macOS), <strong>config.json</strong> និង <strong>Offline Lifetime License Token</strong> សម្រាប់ដំឡើងប្រើប្រាស់ជាក់ស្តែងភ្លាមៗ។
+                  This complete distribution package contains <strong>install.bat</strong> (Windows 1-Click Installer), <strong>install.sh</strong> (Linux/macOS automation), <strong>config.json</strong>, and the <strong>Offline Lifetime License Token</strong> for instant enterprise deployment.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">

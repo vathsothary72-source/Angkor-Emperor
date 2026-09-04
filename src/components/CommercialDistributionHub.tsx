@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { AngkorLogo } from './AngkorLogo';
 import { AcledaKhqrCard } from './AcledaKhqrCard';
+import { AutomatedCheckoutModal } from './AutomatedCheckoutModal';
 import { License } from '../types';
 import JSZip from 'jszip';
 
@@ -54,6 +55,8 @@ export const CommercialDistributionHub: React.FC<CommercialDistributionHubProps>
   const [purchasedLicense, setPurchasedLicense] = useState<License | null>(null);
   const [copiedKey, setCopiedKey] = useState(false);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [checkoutSelectedPlan, setCheckoutSelectedPlan] = useState<any>(null);
 
   // Big Game Titles & Ads Matrix
   const majorGames = [
@@ -509,13 +512,13 @@ Copyright (C) 2026 Angkor Cyber Defense Enterprise. All Rights Reserved.
         </div>
       </div>
 
-      {/* SECTION 1: VALUE PROPOSITION & DIRECT CUSTOMER BENEFITS (ផលប្រយោជន៍ពិតប្រាកដនៃការទិញកម្មវិធី) */}
+      {/* SECTION 1: VALUE PROPOSITION & DIRECT CUSTOMER BENEFITS */}
       <div className="bg-[#0E0E0E] border border-white/10 p-6 rounded-xl space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-white/10">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-[#CCFF00]" />
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              ហេតុអ្វីត្រូវទិញកម្មវិធី ANGKOR CYBER DEFENSE? (CORE BENEFITS)
+              WHY CHOOSE ANGKOR CYBER DEFENSE? (CORE BENEFITS)
             </h3>
           </div>
           <span className="text-[10px] text-[#D4AF37] font-bold">100% PROVEN EFFECTIVENESS</span>
@@ -526,9 +529,9 @@ Copyright (C) 2026 Angkor Cyber Defense Enterprise. All Rights Reserved.
             <div className="w-8 h-8 rounded bg-[#CCFF00]/10 border border-[#CCFF00]/40 flex items-center justify-center text-[#CCFF00]">
               <ShieldAlert className="w-4 h-4" />
             </div>
-            <h4 className="text-xs font-bold text-white">ការពារ Game មិនអោយ Ban</h4>
+            <h4 className="text-xs font-bold text-white">Anti-Ban Protection</h4>
             <p className="text-[11px] text-white/60 font-sans leading-relaxed">
-              ទប់ស្កាត់ Memory Injection, Debugger Hooks និង Hack Tool ដោយសុវត្ថិភាព 100% មិនប៉ះពាល់គណនីហ្គេម។
+              Blocks memory injections, debugger hooks, and malicious tools with 100% account safety.
             </p>
           </div>
 
@@ -536,9 +539,9 @@ Copyright (C) 2026 Angkor Cyber Defense Enterprise. All Rights Reserved.
             <div className="w-8 h-8 rounded bg-cyan-400/10 border border-cyan-400/40 flex items-center justify-center text-cyan-400">
               <Cpu className="w-4 h-4" />
             </div>
-            <h4 className="text-xs font-bold text-white">144+ FPS មិនធ្លាក់ល្បឿន</h4>
+            <h4 className="text-xs font-bold text-white">144+ FPS Zero Lag</h4>
             <p className="text-[11px] text-white/60 font-sans leading-relaxed">
-              ដំណើរការស្ងាត់លើ Kernel Mode ស៊ី CPU ក្រោម 0.2% ធានាល្បឿនលឿន រលូន មិនទាក់ ឬធ្លាក់ Frame Rate។
+              Lightweight Ring 0 kernel execution using &lt;0.2% CPU overhead. Guaranteed smooth gaming.
             </p>
           </div>
 
@@ -546,9 +549,9 @@ Copyright (C) 2026 Angkor Cyber Defense Enterprise. All Rights Reserved.
             <div className="w-8 h-8 rounded bg-[#D4AF37]/10 border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37]">
               <Award className="w-4 h-4" />
             </div>
-            <h4 className="text-xs font-bold text-white">ទិញម្តង ប្រើមួយជីវិត</h4>
+            <h4 className="text-xs font-bold text-white">Buy Once, Own Forever</h4>
             <p className="text-[11px] text-white/60 font-sans leading-relaxed">
-              គម្រោង Lifetime Subscription ផ្តល់សិទ្ធិប្រើប្រាស់អចិន្ត្រៃយ៍ គ្មានថ្លៃប្រចាំខែ និង Update ដោយឥតគិតថ្លៃ។
+              Lifetime subscription with zero recurring fees, perpetual license ownership, and continuous updates.
             </p>
           </div>
 
@@ -556,9 +559,9 @@ Copyright (C) 2026 Angkor Cyber Defense Enterprise. All Rights Reserved.
             <div className="w-8 h-8 rounded bg-purple-400/10 border border-purple-400/40 flex items-center justify-center text-purple-400">
               <HardDrive className="w-4 h-4" />
             </div>
-            <h4 className="text-xs font-bold text-white">Download ZIP ពេញលេញ</h4>
+            <h4 className="text-xs font-bold text-white">Download Full ZIP</h4>
             <p className="text-[11px] text-white/60 font-sans leading-relaxed">
-              ទាញយកកញ្ចប់ Install ទាំងមូល (.zip) មានទាំង Script ដំឡើងស្វ័យប្រវត្តិ និង Offline Token ងាយស្រួល។
+              Get the complete installation archive with automated scripts, binaries, and offline token certificate.
             </p>
           </div>
 
@@ -566,25 +569,25 @@ Copyright (C) 2026 Angkor Cyber Defense Enterprise. All Rights Reserved.
             <div className="w-8 h-8 rounded bg-emerald-400/10 border border-emerald-400/40 flex items-center justify-center text-emerald-400">
               <Zap className="w-4 h-4" />
             </div>
-            <h4 className="text-xs font-bold text-white">ចេញ Key ភ្លាមៗ 24/7</h4>
+            <h4 className="text-xs font-bold text-white">Instant 24/7 Key Issuance</h4>
             <p className="text-[11px] text-white/60 font-sans leading-relaxed">
-              វេរប្រាក់តាម App ធនាគារ (061444866) ប្រព័ន្ធផ្ទៀងផ្ទាត់ និងផ្តល់ License Key ដោយស្វ័យប្រវត្តិតែម្តង។
+              Automated payment verification to account 061444866 generates and unlocks master keys in seconds.
             </p>
           </div>
         </div>
       </div>
 
-      {/* SECTION 2: PROMOTIONAL BILLBOARD ON MAJOR GAMES (ផ្សព្វផ្សាយពាណិជ្ជកម្មលើហ្គេមធំៗ) */}
+      {/* SECTION 2: PROMOTIONAL BILLBOARD ON MAJOR GAMES */}
       <div className="bg-[#0C0C0C] border border-[#D4AF37]/40 p-6 rounded-xl space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-white/10">
           <div className="flex items-center gap-2.5">
             <Gamepad2 className="w-5 h-5 text-[#CCFF00]" />
             <div>
               <h3 className="text-sm sm:text-base font-bold text-white uppercase tracking-wider">
-                ពាណិជ្ជកម្ម & ការពារហ្គេមធំៗ (MAJOR COMPETITIVE TITLES SHIELD)
+                MAJOR COMPETITIVE TITLES SHIELD
               </h3>
               <p className="text-xs text-white/50 font-sans">
-                ផ្ទៀងផ្ទាត់និងការពារដំណើរការហ្គេមកំពូលៗ ធានាសុវត្ថិភាព 100% និង 144+ FPS
+                Verified and tested endpoint armor for top esports games with 100% security and 144+ FPS.
               </p>
             </div>
           </div>
@@ -687,7 +690,7 @@ Copyright (C) 2026 Angkor Cyber Defense Enterprise. All Rights Reserved.
                 </h3>
               </div>
               <p className="text-xs text-white/50 mt-0.5 font-sans">
-                ជ្រើសរើសគម្រោងដើម្បីទទួលបាន License Key ស្វ័យប្រវត្តិ និងការពារម៉ាស៊ីនភ្លាមៗ
+                Select your defense plan to initiate automated checkout and instant machine protection.
               </p>
             </div>
             <span className="text-[10px] font-mono text-[#CCFF00] hidden sm:block">ACC: 061444866</span>
@@ -745,15 +748,27 @@ Copyright (C) 2026 Angkor Cyber Defense Enterprise. All Rights Reserved.
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-white/5">
+                <div className="pt-4 border-t border-white/5 space-y-2">
                   <button
-                    className={`w-full py-2.5 text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 rounded ${
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCheckoutSelectedPlan(plan);
+                      setIsCheckoutModalOpen(true);
+                    }}
+                    className="w-full py-2.5 bg-[#CCFF00] hover:bg-white text-black font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 rounded shadow-[0_0_15px_rgba(204,255,0,0.3)]"
+                  >
+                    <Zap className="w-3.5 h-3.5" />
+                    <span>Automated Checkout</span>
+                  </button>
+
+                  <button
+                    className={`w-full py-2 text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 rounded ${
                       selectedPlan === plan.id
-                        ? 'bg-[#CCFF00] text-black font-black shadow-[0_0_15px_rgba(204,255,0,0.3)]'
-                        : 'bg-white/5 text-white/70 hover:bg-white hover:text-black'
+                        ? 'bg-white/10 text-[#CCFF00] border border-[#CCFF00]/40'
+                        : 'bg-white/5 text-white/70 hover:bg-white/10'
                     }`}
                   >
-                    <span>{selectedPlan === plan.id ? 'Selected' : 'Select Plan'}</span>
+                    <span>{selectedPlan === plan.id ? 'Selected Plan' : 'Select Plan'}</span>
                     <ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
@@ -773,7 +788,7 @@ Copyright (C) 2026 Angkor Cyber Defense Enterprise. All Rights Reserved.
                     Automated Checkout & License Issuance Gateway
                   </h4>
                   <p className="text-xs text-white/50 font-sans">
-                    ផ្ទេរប្រាក់ទៅគណនី <strong>061444866</strong> ដើម្បីទទួលបាន License Key ភ្លាមៗ
+                    Transfer payment to official account <strong>061444866</strong> for instant cryptographic key provisioning.
                   </p>
                 </div>
               </div>
@@ -816,7 +831,7 @@ Copyright (C) 2026 Angkor Cyber Defense Enterprise. All Rights Reserved.
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-white font-bold flex items-center gap-1.5">
                       <Zap className="w-3.5 h-3.5 text-[#E0FF00]" />
-                      លេខគណនីធនាគារផ្លូវការ:
+                      Official Bank Account:
                     </span>
                     <span className="text-[#E0FF00] font-bold font-mono text-sm">061444866</span>
                   </div>
@@ -829,30 +844,47 @@ Copyright (C) 2026 Angkor Cyber Defense Enterprise. All Rights Reserved.
                     className="w-full py-2.5 px-3 bg-gradient-to-r from-[#004B6E] via-[#00608C] to-[#007EA7] hover:brightness-110 text-white font-black text-xs rounded flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,126,167,0.4)] border border-cyan-400/40"
                   >
                     <CreditCard className="w-4 h-4 text-[#CCFF00]" />
-                    <span>ចុចបង់ប្រាក់ផ្ទាល់តាម ABA PAY: https://pay.ababank.com/oRF8/c49y1xuy</span>
+                    <span>DIRECT ABA PAY LINK: https://pay.ababank.com/oRF8/c49y1xuy</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
 
-                  <p className="text-[11px] text-white/60 font-sans">
-                    លោកអ្នកអាចស្កេន KHQR ឬចុចប៊ូតុងខាងលើដើម្បីបើកតំណរ ABA PayWay ផ្ទាល់។
-                  </p>
+                  <div className="p-3 bg-red-950/40 border border-red-500/30 rounded text-left space-y-1">
+                    <div className="flex items-center gap-2 text-[#FF3B30] text-[11px] font-bold">
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Zero-Exposure Key Protection Policy</span>
+                    </div>
+                    <p className="text-[10px] text-white/70 font-sans leading-relaxed">
+                      License keys remain securely masked and encrypted prior to verified service purchase. Secret keys are automatically generated and dispatched only upon 100% verified settlement through our automated banking gateway.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      setCheckoutSelectedPlan(currentPlan);
+                      setIsCheckoutModalOpen(true);
+                    }}
+                    className="w-full py-3.5 bg-[#CCFF00] hover:bg-white text-black font-black uppercase tracking-wider text-xs transition-all cursor-pointer shadow-[0_0_20px_rgba(204,255,0,0.35)] flex items-center justify-center gap-2 rounded"
+                  >
+                    <Zap className="w-4 h-4 text-black" />
+                    <span>Open Automated Checkout</span>
+                  </button>
+
                   <button
                     onClick={handleSimulatePurchase}
                     disabled={isProcessingPayment}
-                    className="w-full py-3.5 bg-gradient-to-r from-[#D4AF37] via-[#E5C158] to-[#CCFF00] text-black font-black uppercase tracking-widest text-xs transition-all cursor-pointer shadow-[0_0_20px_rgba(204,255,0,0.3)] hover:opacity-95 flex items-center justify-center gap-2 rounded"
+                    className="w-full py-3.5 bg-gradient-to-r from-[#D4AF37] via-[#E5C158] to-[#D4AF37] text-black font-black uppercase tracking-wider text-xs transition-all cursor-pointer shadow-md hover:brightness-105 flex items-center justify-center gap-2 rounded"
                   >
                     {isProcessingPayment ? (
                       <>
                         <RefreshCw className="w-4 h-4 animate-spin text-black" />
-                        <span>Verifying & Generating Cryptographic License...</span>
+                        <span>Verifying & Issuing...</span>
                       </>
                     ) : (
                       <>
                         <DollarSign className="w-4 h-4 text-black" />
-                        <span>Authorize ${currentPlan.priceUsd.toFixed(2)} & Issue License Key</span>
+                        <span>Instant Key Unlock (${currentPlan.priceUsd})</span>
                       </>
                     )}
                   </button>
@@ -1093,6 +1125,20 @@ Copyright (C) 2026 Angkor Cyber Defense Enterprise. All Rights Reserved.
             </div>
           </div>
         </div>
+      )}
+
+      {/* Automated Checkout Modal */}
+      {checkoutSelectedPlan && (
+        <AutomatedCheckoutModal
+          isOpen={isCheckoutModalOpen}
+          onClose={() => setIsCheckoutModalOpen(false)}
+          selectedPlan={checkoutSelectedPlan}
+          onLicenseIssued={(lic) => {
+            setPurchasedLicense(lic);
+            onIssueLicense?.(lic);
+          }}
+          onDownloadZip={handleDownloadFullZip}
+        />
       )}
     </div>
   );

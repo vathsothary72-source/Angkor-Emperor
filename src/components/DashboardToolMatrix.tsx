@@ -407,7 +407,7 @@ export const DashboardToolMatrix: React.FC<DashboardToolMatrixProps> = ({
       <div>
         <h4 className="text-[#CCFF00] font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 border-l-2 border-[#CCFF00] pl-2 mb-3">
           <ShieldCheck className="w-3.5 h-3.5" />
-          ប្រព័ន្ធការពារ និងគ្រប់គ្រង (DEFENSE & MANAGEMENT)
+          DEFENSE & MANAGEMENT MODULES
         </h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
           {tools.filter(t => !['hacker-arena', 'client-simulator'].includes(t.id)).map((tool) => {
@@ -485,7 +485,7 @@ export const DashboardToolMatrix: React.FC<DashboardToolMatrixProps> = ({
       <div className="pt-2">
         <h4 className="text-[#FF3B30] font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 border-l-2 border-[#FF3B30] pl-2 mb-3 mt-4">
           <Flame className="w-3.5 h-3.5" />
-          ប្រព័ន្ធវាយប្រហារសាកល្បង (OFFENSIVE & ATTACK SIMULATION)
+          OFFENSIVE SIMULATION & STRESS MODULES
         </h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
           {tools.filter(t => ['hacker-arena', 'client-simulator'].includes(t.id)).map((tool) => {

@@ -41,7 +41,7 @@ export const FloatingAiChatWidget: React.FC<FloatingAiChatWidgetProps> = ({ onSh
     {
       id: 'init-1',
       sender: 'ai',
-      text: `Greetings! I am the official AI Gemini Assistant & Cyber Defense Intelligence Advisor for Angkor Cyber Defense Suite.\n\nSelect any quick preset below or type your inquiry to generate instant customer responses and security telemetry:`,
+      text: `Hello! I am Ai Menimi (powered by Gemini 2.5), your intelligent cybersecurity and licensing assistant for Angkor Cyber Defense Suite.\n\nFeel free to ask about pricing plans, automated KHQR payment options, 144+ FPS esports game protection, or Ring 0 kernel shielding:`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }
   ]);
@@ -158,13 +158,13 @@ export const FloatingAiChatWidget: React.FC<FloatingAiChatWidgetProps> = ({ onSh
 
               <div className="text-left hidden sm:block">
                 <div className="text-[11px] font-black text-black tracking-wider flex items-center gap-1.5">
-                  <span>AI CYBER ADVISOR</span>
+                  <span>Ai Menimi</span>
                   <span className="px-1.5 py-0.2 bg-black text-[#CCFF00] text-[8px] rounded font-black">
                     ONLINE
                   </span>
                 </div>
-                <div className="text-[9px] text-black/80 font-sans">
-                  Support & Intelligence
+                <div className="text-[9px] text-black/80 font-mono">
+                  Smart AI Assistant
                 </div>
               </div>
             </button>
@@ -174,19 +174,19 @@ export const FloatingAiChatWidget: React.FC<FloatingAiChatWidgetProps> = ({ onSh
 
       {/* 2. EXPANDED FLOATING INBOX WINDOW */}
       {isOpen && (
-        <div className="w-[360px] sm:w-[420px] h-[580px] bg-[#0E0C08] border border-[#D4AF37]/50 rounded-2xl flex flex-col justify-between shadow-[0_15px_50px_rgba(0,0,0,0.9)] animate-fadeIn relative overflow-hidden">
+        <div className="w-[360px] sm:w-[420px] h-[580px] bg-[#0E0C08] border border-[#CCFF00]/50 rounded-2xl flex flex-col justify-between shadow-[0_15px_50px_rgba(0,0,0,0.9)] animate-fadeIn relative overflow-hidden">
           {/* Top Header */}
-          <div className="p-4 border-b border-[#D4AF37]/30 bg-[#16120B] relative z-20 flex items-center justify-between">
+          <div className="p-4 border-b border-[#CCFF00]/30 bg-[#121A0A] relative z-20 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#2A2010] border border-[#D4AF37] flex items-center justify-center text-[#CCFF00] shadow-[0_0_10px_rgba(212,175,55,0.4)]">
+              <div className="w-8 h-8 rounded-lg bg-[#1E2810] border border-[#CCFF00] flex items-center justify-center text-[#CCFF00] shadow-[0_0_10px_rgba(204,255,0,0.4)]">
                 <Bot className="w-4 h-4" />
               </div>
               <div>
                 <div className="text-xs font-black text-white flex items-center gap-1.5">
-                  <span>AI CYBER DEFENSE INBOX</span>
+                  <span>Ai Menimi (Gemini 2.5)</span>
                   <span className="w-2 h-2 rounded-full bg-[#CCFF00] animate-pulse" />
                 </div>
-                <div className="text-[9px] text-[#D4AF37] flex items-center gap-1">
+                <div className="text-[9px] text-[#CCFF00] flex items-center gap-1">
                   <span>ACC: 061444866 (ABA / Bakong)</span>
                 </div>
               </div>

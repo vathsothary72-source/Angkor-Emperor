@@ -16,7 +16,8 @@ import {
   EyeOff,
   Star,
   Shield,
-  QrCode
+  QrCode,
+  AlertTriangle
 } from 'lucide-react';
 import { License, LicensePlan } from '../types';
 
@@ -30,6 +31,7 @@ interface LicenseTableProps {
   onDeleteLicense: (licenseKey: string) => void;
   onExportCSV: () => void;
   onOpenKhqrModal?: () => void;
+  onCheckExpiryReminder?: () => void;
 }
 
 export const LicenseTable: React.FC<LicenseTableProps> = ({
@@ -42,13 +44,25 @@ export const LicenseTable: React.FC<LicenseTableProps> = ({
   onDeleteLicense,
   onExportCSV,
   onOpenKhqrModal,
+  onCheckExpiryReminder,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'revoked' | 'trial'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expiring' | 'expired' | 'revoked' | 'trial'>('all');
   const [planFilter, setPlanFilter] = useState<string>('all');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [revealedKeys, setRevealedKeys] = useState<Record<string, boolean>>({});
   const [hideAllKeys, setHideAllKeys] = useState<boolean>(true); // Default to protected hidden mode
+
+  const now = Date.now();
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+  // Find licenses expiring within 7 days
+  const expiringLicenses = licenses.filter((lic) => {
+    if (!lic.expires_at || lic.revoked) return false;
+    const expiryTime = new Date(lic.expires_at).getTime();
+    const diff = expiryTime - now;
+    return diff > 0 && diff <= SEVEN_DAYS_MS;
+  });
 
   const handleCopy = (key: string) => {
     navigator.clipboard.writeText(key);
@@ -87,6 +101,9 @@ export const LicenseTable: React.FC<LicenseTableProps> = ({
     
     if (statusFilter === 'active') {
       matchesStatus = lic.is_active && !lic.revoked && !isExpired;
+    } else if (statusFilter === 'expiring') {
+      const diff = lic.expires_at ? new Date(lic.expires_at).getTime() - now : -1;
+      matchesStatus = !!lic.expires_at && !lic.revoked && diff > 0 && diff <= SEVEN_DAYS_MS;
     } else if (statusFilter === 'expired') {
       matchesStatus = !!isExpired && !lic.revoked;
     } else if (statusFilter === 'revoked') {
@@ -184,7 +201,7 @@ export const LicenseTable: React.FC<LicenseTableProps> = ({
   const renderStarRating = (lic: License) => {
     const currentRating = lic.rating ?? 5;
     return (
-      <div className="flex items-center gap-0.5" title={`កម្រិតអតិថិជន: ${currentRating} ផ្កាយ (VIP Stars)`}>
+      <div className="flex items-center gap-0.5" title={`Client Tier: ${currentRating} VIP Stars`}>
         {[1, 2, 3, 4, 5].map((starIndex) => {
           const isFilled = starIndex <= currentRating;
           return (
@@ -193,7 +210,7 @@ export const LicenseTable: React.FC<LicenseTableProps> = ({
               type="button"
               onClick={() => onUpdateRating && onUpdateRating(lic.license_key, starIndex)}
               className="p-0.5 hover:scale-125 transition-transform cursor-pointer focus:outline-none"
-              title={`កំណត់ ${starIndex} ផ្កាយ`}
+              title={`Rate ${starIndex} Stars`}
             >
               <Star
                 className={`w-3.5 h-3.5 ${
@@ -243,11 +260,12 @@ export const LicenseTable: React.FC<LicenseTableProps> = ({
             id="license-status-filter"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            aria-label="ត្រងតាមស្ថានភាពអាជ្ញាប័ណ្ណ"
+            aria-label="Filter by license status"
             className="bg-[#0C0C0C] border border-white/10 focus:border-white/40 text-xs font-mono font-semibold text-white/80 px-3.5 py-2 outline-none cursor-pointer hover:border-white/30 transition-all"
           >
             <option value="all" className="bg-[#141414]">STATUS: ALL</option>
             <option value="active" className="bg-[#141414]">🟢 ACTIVE</option>
+            <option value="expiring" className="bg-[#141414]">⚠️ EXPIRING SOON (&le; 7 DAYS) {expiringLicenses.length > 0 ? `(${expiringLicenses.length})` : ''}</option>
             <option value="expired" className="bg-[#141414]">🟡 EXPIRED</option>
             <option value="revoked" className="bg-[#141414]">🔴 REVOKED</option>
             <option value="trial" className="bg-[#141414]">🔵 TRIAL</option>
@@ -258,7 +276,7 @@ export const LicenseTable: React.FC<LicenseTableProps> = ({
             id="license-plan-filter"
             value={planFilter}
             onChange={(e) => setPlanFilter(e.target.value)}
-            aria-label="ត្រងតាមប្រភេទប្លង់អាជ្ញាប័ណ្ណ"
+            aria-label="Filter by license plan tier"
             className="bg-[#0C0C0C] border border-white/10 focus:border-white/40 text-xs font-mono font-semibold text-white/80 px-3.5 py-2 outline-none cursor-pointer hover:border-white/30 transition-all"
           >
             <option value="all" className="bg-[#141414]">TIER: ALL</option>
@@ -318,6 +336,60 @@ export const LicenseTable: React.FC<LicenseTableProps> = ({
           </button>
         </div>
       </div>
+
+      {/* License Expiry Reminder Banner (Within 7 Days) */}
+      {expiringLicenses.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 bg-[#F59E0B]/10 border border-[#F59E0B]/40 text-xs font-mono">
+          <div className="flex items-center gap-3 text-[#F59E0B]">
+            <div className="w-8 h-8 rounded bg-[#F59E0B]/20 border border-[#F59E0B]/40 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-4 h-4 text-[#F59E0B] animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold uppercase tracking-wider text-[#F59E0B]">
+                  License Expiry Reminder
+                </span>
+                <span className="px-1.5 py-0.5 text-[9px] font-black bg-[#F59E0B] text-black rounded-none">
+                  {expiringLicenses.length} {expiringLicenses.length === 1 ? 'LICENSE' : 'LICENSES'}
+                </span>
+              </div>
+              <p className="text-white/80 font-sans text-xs mt-0.5">
+                {expiringLicenses.length === 1 ? (
+                  <>
+                    License <span className="font-mono text-[#F59E0B] font-bold">{expiringLicenses[0].license_key}</span> ({expiringLicenses[0].user_name || expiringLicenses[0].plan}) expires within 7 days.
+                  </>
+                ) : (
+                  <>
+                    There are <span className="font-bold text-[#F59E0B]">{expiringLicenses.length}</span> licenses expiring within 7 days.
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+            <button
+              onClick={() => setStatusFilter(statusFilter === 'expiring' ? 'all' : 'expiring')}
+              className={`px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider border transition-all cursor-pointer ${
+                statusFilter === 'expiring'
+                  ? 'bg-[#F59E0B] text-black border-[#F59E0B]'
+                  : 'bg-[#F59E0B]/20 hover:bg-[#F59E0B]/30 text-[#F59E0B] border-[#F59E0B]/40'
+              }`}
+            >
+              {statusFilter === 'expiring' ? 'Show All Licenses' : `Filter Expiring (${expiringLicenses.length})`}
+            </button>
+            {onCheckExpiryReminder && (
+              <button
+                onClick={onCheckExpiryReminder}
+                className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
+                title="Trigger Expiry Reminder Toast"
+              >
+                Trigger Reminder
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Main Table Card */}
       <div className="bg-[#0C0C0C] border border-white/10 overflow-hidden">
@@ -413,7 +485,7 @@ export const LicenseTable: React.FC<LicenseTableProps> = ({
                       {/* User / Org with 5-Star VIP Rating */}
                       <td className="py-4 px-4">
                         <div className="text-xs font-semibold text-white/90">
-                          {lic.user_name || 'អនាមិក (Default)'}
+                          {lic.user_name || 'Anonymous (Default)'}
                         </div>
                         
                         {/* Interactive 5-Star VIP Rating */}
@@ -451,13 +523,43 @@ export const LicenseTable: React.FC<LicenseTableProps> = ({
 
                       {/* Expiry */}
                       <td className="py-4 px-4">
-                        <div className="text-xs font-mono text-white/70">
+                        <div className="text-xs font-mono">
                           {lic.expires_at ? (
-                            new Date(lic.expires_at).toLocaleDateString('km-KH', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })
+                            (() => {
+                              const expiryTime = new Date(lic.expires_at).getTime();
+                              const diffMs = expiryTime - now;
+                              const isExpiringSoon = !lic.revoked && diffMs > 0 && diffMs <= SEVEN_DAYS_MS;
+                              const isExpired = diffMs <= 0;
+                              const daysLeft = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+
+                              if (isExpiringSoon) {
+                                return (
+                                  <div className="space-y-1">
+                                    <div className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-bold uppercase bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40">
+                                      <AlertTriangle className="w-3 h-3 text-[#F59E0B] animate-pulse" />
+                                      <span>{daysLeft}d left</span>
+                                    </div>
+                                    <div className="text-[11px] text-white/60">
+                                      {new Date(lic.expires_at).toLocaleDateString('km-KH', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric',
+                                      })}
+                                    </div>
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <div className={isExpired ? 'text-white/40 line-through' : 'text-white/70'}>
+                                  {new Date(lic.expires_at).toLocaleDateString('km-KH', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                  })}
+                                </div>
+                              );
+                            })()
                           ) : (
                             <span className="text-[#E0FF00] font-bold">LIFETIME</span>
                           )}
@@ -471,7 +573,7 @@ export const LicenseTable: React.FC<LicenseTableProps> = ({
                           <button
                             onClick={() => onExtendLicense(lic)}
                             className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider bg-white/5 hover:bg-white/10 text-white/80 border border-white/10 transition-all cursor-pointer hover:border-white/30"
-                            title="ពន្យារពេល"
+                            title="Extend Duration"
                           >
                             <Clock className="w-3 h-3 text-[#E0FF00]" />
                             <span>Extend</span>
@@ -485,7 +587,7 @@ export const LicenseTable: React.FC<LicenseTableProps> = ({
                                 ? 'bg-[#E0FF00]/10 hover:bg-[#E0FF00]/20 text-[#E0FF00] border-[#E0FF00]/30'
                                 : 'bg-[#FF3B30]/10 hover:bg-[#FF3B30]/20 text-[#FF3B30] border-[#FF3B30]/30'
                             }`}
-                            title={lic.revoked ? 'បើកដំណើរការឡើងវិញ' : 'បិទដំណើរការ'}
+                            title={lic.revoked ? 'Re-enable License' : 'Revoke License'}
                           >
                             {lic.revoked ? (
                               <>
@@ -504,7 +606,7 @@ export const LicenseTable: React.FC<LicenseTableProps> = ({
                           <button
                             onClick={() => onDeleteLicense(lic.license_key)}
                             className="p-1 text-white/30 hover:text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors cursor-pointer"
-                            title="លុបចោល"
+                            title="Delete License"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

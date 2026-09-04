@@ -153,12 +153,12 @@ export const AcledaKhqrCard: React.FC<AcledaKhqrCardProps> = ({
           </div>
         </div>
 
-        {/* 2. DIRECT BANK APP LINK BUTTONS (លីងផ្ទាល់ទៅគណនីធនាគាររបស់អតិថិជន) */}
+        {/* 2. DIRECT BANK APP LINK BUTTONS */}
         <div className="mb-3 p-3 bg-[#141414] border border-[#D4AF37]/40 rounded-xl space-y-2.5">
           <div className="text-[10px] font-bold text-white/80 uppercase flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-[#E0FF00]">
               <Smartphone className="w-3.5 h-3.5" />
-              តំណរទូទាត់ផ្លូវការ ABA PayWay (1-Tap Pay):
+              Official ABA PayWay 1-Tap Link:
             </span>
             <span className="text-[#D4AF37] font-mono text-[9px] bg-[#D4AF37]/10 px-1.5 py-0.5 rounded border border-[#D4AF37]/30">
               OFFICIAL LINK
@@ -173,7 +173,7 @@ export const AcledaKhqrCard: React.FC<AcledaKhqrCardProps> = ({
             className="w-full py-2.5 px-3 bg-gradient-to-r from-[#004B6E] via-[#00608C] to-[#007EA7] hover:brightness-110 text-white font-black text-xs rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,126,167,0.4)] border border-cyan-400/40 group/aba"
           >
             <CreditCard className="w-4 h-4 text-[#CCFF00]" />
-            <span>បើកតំណរទូទាត់ ABA PAY DIRECT</span>
+            <span>OPEN ABA PAY DIRECT</span>
             <ExternalLink className="w-3.5 h-3.5 text-white/70 group-hover/aba:translate-x-0.5 transition-transform" />
           </a>
 
@@ -351,7 +351,7 @@ export const AcledaKhqrCard: React.FC<AcledaKhqrCardProps> = ({
         {/* 5. BOTTOM ACTIONS: COPY ACCOUNT 061444866 & SAVE CODE */}
         <div className="pt-4 text-center space-y-3">
           <div className="bg-[#141414] p-2.5 border border-white/10 rounded flex items-center justify-between text-xs">
-            <span className="text-white/60">លេខគណនីវេរប្រាក់:</span>
+            <span className="text-white/60">Bank Account Number:</span>
             <span className="text-[#E0FF00] font-bold font-mono text-sm">{accountNumber}</span>
           </div>
 

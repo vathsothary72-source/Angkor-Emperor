@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Key, 
   ShieldAlert, 
@@ -48,14 +48,42 @@ import { ExtendLicenseModal } from './components/ExtendLicenseModal';
 import { DeviceListModal } from './components/DeviceListModal';
 import { ClientSimulatorModal } from './components/ClientSimulatorModal';
 import { AcledaKhqrModal } from './components/AcledaKhqrModal';
-import { GoogleAuthModal, GoogleUser } from './components/GoogleAuthModal';
+import { GoogleAuthModal } from './components/GoogleAuthModal';
+import { MenuBar, ActiveRole } from './components/MenuBar';
+import { ProgramProfileModal } from './components/ProgramProfileModal';
+import { ToolVisibilitySettings, GoogleUser } from './types';
 import { ToastContainer, ToastMessage } from './components/Toast';
 
 export default function App() {
   // State initialization with localStorage fallback
   const [licenses, setLicenses] = useState<License[]>(() => {
     const saved = localStorage.getItem('angkor_licenses');
-    return saved ? JSON.parse(saved) : initialLicenses;
+    if (saved) {
+      try {
+        const parsed: License[] = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const now = Date.now();
+          const hasExpiringSoon = parsed.some((l) => {
+            if (!l.expires_at || l.revoked) return false;
+            const diff = new Date(l.expires_at).getTime() - now;
+            return diff > 0 && diff <= 7 * 24 * 60 * 60 * 1000;
+          });
+          if (!hasExpiringSoon) {
+            // Guarantee at least one demo license expires in 4 days for testing
+            const targetIdx = parsed.findIndex((l) => l.license_key === 'AE-ELP-9R5S-2T3U' || l.plan === 'trial');
+            if (targetIdx !== -1) {
+              parsed[targetIdx].expires_at = new Date(now + 4 * 24 * 60 * 60 * 1000).toISOString();
+              parsed[targetIdx].revoked = false;
+              parsed[targetIdx].is_active = true;
+            }
+          }
+          return parsed;
+        }
+      } catch (e) {
+        console.error('Error loading licenses from storage', e);
+      }
+    }
+    return initialLicenses;
   });
 
   const [devices, setDevices] = useState<Device[]>(() => {
@@ -97,35 +125,76 @@ export default function App() {
   const [isDesktopSetupOpen, setIsDesktopSetupOpen] = useState(false);
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
   const [isKhqrModalOpen, setIsKhqrModalOpen] = useState(false);
+  const [isProgramProfileOpen, setIsProgramProfileOpen] = useState(false);
   const [activeLicenseForAction, setActiveLicenseForAction] = useState<License | null>(null);
+
+  // Active Role State: 'owner' | 'super_admin' | 'client'
+  const [currentRole, setCurrentRole] = useState<ActiveRole>('owner');
+
+  // Tool Visibility Settings (Owner & Admin customizable)
+  const [toolVisibility, setToolVisibility] = useState<ToolVisibilitySettings>(() => {
+    const saved = localStorage.getItem('angkor_tool_visibility');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Error loading tool visibility', e);
+      }
+    }
+    return {
+      showStore: true,
+      showLicenses: true,
+      showBanking: true,
+      showGenerateKey: true,
+      showKhqrModal: true,
+      showDownloadZip: true,
+      showClientTester: true,
+      showGeminiAi: true,
+      showAlpha8: true,
+      showSecurityAudit: true,
+      showSuperAdmin: true,
+    };
+  });
+
+  const handleToggleToolVisibility = (key: keyof ToolVisibilitySettings) => {
+    setToolVisibility((prev) => {
+      const updated = { ...prev, [key]: !prev[key] };
+      localStorage.setItem('angkor_tool_visibility', JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   // Global Search State
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
 
-  // Filtered Data Sets based on Global Search
-  const lowerQuery = globalSearchQuery.toLowerCase();
+  // Filtered Data Sets based on Global Search (safely checks actual Device and ThreatLog interface keys)
+  const lowerQuery = globalSearchQuery.toLowerCase().trim();
   
   const filteredLicenses = licenses.filter(l => 
-    !globalSearchQuery ||
+    !lowerQuery ||
     l.license_key.toLowerCase().includes(lowerQuery) || 
     (l.user_name && l.user_name.toLowerCase().includes(lowerQuery)) ||
-    l.plan.toLowerCase().includes(lowerQuery)
+    l.plan.toLowerCase().includes(lowerQuery) ||
+    (l.metadata && l.metadata.toLowerCase().includes(lowerQuery))
   );
 
   const filteredDevices = devices.filter(d => 
-    !globalSearchQuery ||
-    d.hwid.toLowerCase().includes(lowerQuery) ||
-    (d.hostname && d.hostname.toLowerCase().includes(lowerQuery)) ||
-    d.ip.toLowerCase().includes(lowerQuery)
+    !lowerQuery ||
+    d.license_key.toLowerCase().includes(lowerQuery) ||
+    d.device_id.toLowerCase().includes(lowerQuery) ||
+    (d.device_name && d.device_name.toLowerCase().includes(lowerQuery)) ||
+    (d.hardware_fingerprint && d.hardware_fingerprint.toLowerCase().includes(lowerQuery)) ||
+    (d.ip_address && d.ip_address.toLowerCase().includes(lowerQuery))
   );
 
   const filteredThreats = threats.filter(t => 
-    !globalSearchQuery ||
-    t.ip.toLowerCase().includes(lowerQuery) ||
-    t.mac_address.toLowerCase().includes(lowerQuery) ||
+    !lowerQuery ||
+    (t.ip && t.ip.toLowerCase().includes(lowerQuery)) ||
+    (t.mac && t.mac.toLowerCase().includes(lowerQuery)) ||
     (t.details && t.details.toLowerCase().includes(lowerQuery)) ||
-    t.action.toLowerCase().includes(lowerQuery) ||
-    t.type.toLowerCase().includes(lowerQuery)
+    (t.action && t.action.toLowerCase().includes(lowerQuery)) ||
+    (t.location && t.location.toLowerCase().includes(lowerQuery)) ||
+    (t.target_key && t.target_key.toLowerCase().includes(lowerQuery))
   );
 
   // Sync to localStorage
@@ -155,7 +224,7 @@ export default function App() {
       const target = e.target as HTMLElement;
       if (target && (target.closest('.font-mono') || target.tagName === 'PRE' || target.tagName === 'CODE')) {
         e.preventDefault();
-        showToast('info', '🛡️ កូដសម្ងាត់ការពារជាតិកម្រិតយោធា', 'កូដស្នូលខាងក្នុងត្រូវបានការពារដោយ Quantum Encryption មិនត្រូវបានបើកចំហឡើយ!');
+        showToast('info', '🛡️ Proprietary Quantum Shield', 'Internal proprietary logic is encrypted and protected against unauthorized inspection.');
       }
     };
     window.addEventListener('contextmenu', handleContextMenu);
@@ -163,17 +232,64 @@ export default function App() {
   }, []);
 
   // Toast Helper
-  const showToast = (type: 'success' | 'error' | 'info', title: string, message?: string) => {
-    const newToast: ToastMessage = { id: Date.now(), type, title, message };
+  const showToast = (type: 'success' | 'error' | 'info' | 'warning', title: string, message?: string) => {
+    const newToast: ToastMessage = { id: Date.now() + Math.floor(Math.random() * 1000), type, title, message };
     setToasts((prev) => [newToast, ...prev]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== newToast.id));
-    }, 4000);
+    }, 5000);
   };
 
   const dismissToast = (id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
+
+  // Check for licenses expiring within 7 days and trigger 'License Expiry Reminder' toast notification
+  const checkAndTriggerLicenseExpiryReminder = useCallback(() => {
+    // Only triggers for admins (Super Admin, Operator, or non-client)
+    const isAdmin = !googleUser || googleUser.role === 'Super Admin' || googleUser.role === 'Operator' || googleUser.role !== 'Client';
+    if (!isAdmin) return;
+
+    const now = Date.now();
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+    const expiringSoon = licenses.filter((lic) => {
+      if (!lic.expires_at || lic.revoked) return false;
+      const expiryTime = new Date(lic.expires_at).getTime();
+      const remainingMs = expiryTime - now;
+      // Expires within 7 days from now (and hasn't already expired)
+      return remainingMs > 0 && remainingMs <= SEVEN_DAYS_MS;
+    });
+
+    if (expiringSoon.length > 0) {
+      if (expiringSoon.length === 1) {
+        const lic = expiringSoon[0];
+        const daysLeft = Math.max(1, Math.ceil((new Date(lic.expires_at!).getTime() - now) / (1000 * 60 * 60 * 24)));
+        showToast(
+          'warning',
+          'License Expiry Reminder',
+          `License ${lic.license_key} (${lic.user_name || lic.plan}) will expire in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}. Please review or extend this license.`
+        );
+      } else {
+        const sampleKeys = expiringSoon.slice(0, 2).map((l) => l.license_key).join(', ');
+        showToast(
+          'warning',
+          'License Expiry Reminder',
+          `${expiringSoon.length} licenses are within 7 days of expiration (${sampleKeys}${expiringSoon.length > 2 ? '...' : ''}). Please review or extend them.`
+        );
+      }
+    }
+  }, [licenses, googleUser]);
+
+  const lastViewedTabRef = useRef<string | null>(null);
+
+  // Automatically trigger 'License Expiry Reminder' toast when an admin views the license list
+  useEffect(() => {
+    if (activeTab === 'licenses' && lastViewedTabRef.current !== 'licenses') {
+      checkAndTriggerLicenseExpiryReminder();
+    }
+    lastViewedTabRef.current = activeTab;
+  }, [activeTab, checkAndTriggerLicenseExpiryReminder]);
 
   // Compute System Statistics
   const activeCount = licenses.filter(
@@ -191,7 +307,7 @@ export default function App() {
   // Handlers
   const handleGenerateLicense = (newLicense: License) => {
     setLicenses((prev) => [newLicense, ...prev]);
-    showToast('success', 'បានបង្កើត License ថ្មី!', `Key: ${newLicense.license_key}`);
+    showToast('success', 'New License Created!', `Key: ${newLicense.license_key}`);
   };
 
   const handleToggleRevoke = (licenseKey: string) => {
@@ -208,7 +324,7 @@ export default function App() {
         return lic;
       })
     );
-    showToast('info', 'បានផ្លាស់ប្តូរស្ថានភាព License');
+    showToast('info', 'License status updated');
   };
 
   const handleUpdateRating = (licenseKey: string, newRating: number) => {
@@ -223,7 +339,7 @@ export default function App() {
         return lic;
       })
     );
-    showToast('success', `បានកំណត់កម្រិត ${newRating} ផ្កាយ (VIP Star Rating)`);
+    showToast('success', `VIP Star Rating set to ${newRating} Stars`);
   };
 
   const handleConfirmExtend = (licenseKey: string, newDate: string, newMaxDevices: number) => {
@@ -242,14 +358,14 @@ export default function App() {
     );
     setIsExtendModalOpen(false);
     setActiveLicenseForAction(null);
-    showToast('success', 'បានពន្យារពេល License ជោគជ័យ!');
+    showToast('success', 'License extended successfully!');
   };
 
   const handleDeleteLicense = (licenseKey: string) => {
-    if (confirm(`តើអ្នកពិតជាចង់លុប License ${licenseKey} មែនទេ?`)) {
+    if (confirm(`Are you sure you want to permanently delete license ${licenseKey}?`)) {
       setLicenses((prev) => prev.filter((l) => l.license_key !== licenseKey));
       setDevices((prev) => prev.filter((d) => d.license_key !== licenseKey));
-      showToast('info', 'បានលុប License ចេញពីប្រព័ន្ធ');
+      showToast('info', 'License removed from system');
     }
   };
 
@@ -268,7 +384,7 @@ export default function App() {
         return lic;
       })
     );
-    showToast('success', 'បានផ្ដាច់ឧបករណ៍ (Device Unlinked)');
+    showToast('success', 'Device Seat Unlinked');
   };
 
   const handleActivateSuccess = (licenseKey: string, hwid: string, devName: string) => {
@@ -298,7 +414,7 @@ export default function App() {
         return l;
       })
     );
-    showToast('success', 'ផ្ទៀងផ្ទាត់ជោគជ័យ!', `បានចងភ្ជាប់ HWID: ${hwid.substring(0, 16)}...`);
+    showToast('success', 'Hardware Verified!', `Bound HWID: ${hwid.substring(0, 16)}...`);
   };
 
   const handleSimulateThreat = (threatType: string, customDetails?: string) => {
@@ -323,7 +439,7 @@ export default function App() {
       target_key: 'AE-PRO-8921-KH01',
     };
     setThreats((prev) => [newLog, ...prev]);
-    showToast('error', '⚠️ បានរារាំងការវាយប្រហារ!', `${threatType}: ត្រូវបានបញ្ឈប់ភ្លាមៗ`);
+    showToast('error', '⚠️ Threat Intercepted!', `${threatType}: Terminated immediately`);
   };
 
   const handleExportCSV = () => {
@@ -345,24 +461,24 @@ export default function App() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast('info', 'បាន Export ឯកសារ CSV ជោគជ័យ');
+    showToast('info', 'CSV File Exported Successfully');
   };
 
   const handleResetToDefault = () => {
-    if (confirm('តើអ្នកចង់ Reset ទិន្នន័យទាំងអស់ទៅជា Demo Seed Data ដើមវិញឬទេ?')) {
+    if (confirm('Do you want to reset all data back to original demo seed defaults?')) {
       setLicenses(initialLicenses);
       setDevices(initialDevices);
       setThreats(initialThreatLogs);
       localStorage.removeItem('angkor_licenses');
       localStorage.removeItem('angkor_devices');
       localStorage.removeItem('angkor_threats');
-      showToast('info', 'ទិន្នន័យត្រូវបានកំណត់ឡើងវិញ');
+      showToast('info', 'Data reset to default state');
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1C1710] via-[#0E0C09] to-[#050505] text-[#F5E8C7] font-sans relative overflow-x-hidden selection:bg-[#D4AF37] selection:text-black">
-      {/* 1. RUNNING RGB MARQUEE HEADER (ពណ៌ត្រួយចេក, MULTI-COLOR CRISP TEXT & FONT CHANGER) */}
+      {/* 1. RUNNING RGB MARQUEE HEADER (NEON LIME, MULTI-COLOR CRISP TEXT & FONT CHANGER) */}
       <TopRgbMarqueeHeader 
         currentFont={currentMarqueeFont}
         onFontChange={setCurrentMarqueeFont}
@@ -370,7 +486,33 @@ export default function App() {
         onOpenSetupModal={() => setIsDesktopSetupOpen(true)}
       />
 
-      {/* Radiant Luxury Ambient Nightclub RGB Layers (ផ្ទៃខាងក្រោយភ្លើងខ្លឹប RGB) */}
+      {/* 2. DEDICATED STICKY MENU BAR WITH SEARCH, ROLE TOGGLES & MODAL LAUNCHERS */}
+      <MenuBar
+        activeTab={activeTab}
+        onSelectTab={(tab) => {
+          setActiveTab(tab as any);
+          if (tab === 'licenses') {
+            checkAndTriggerLicenseExpiryReminder();
+          }
+        }}
+        onOpenGenerateModal={() => setIsGenerateModalOpen(true)}
+        onOpenKhqrModal={() => setIsKhqrModalOpen(true)}
+        onOpenSetupModal={() => setIsDesktopSetupOpen(true)}
+        onOpenClientSim={() => setIsClientSimOpen(true)}
+        onOpenProgramProfile={() => setIsProgramProfileOpen(true)}
+        onExportCSV={handleExportCSV}
+        currentRole={currentRole}
+        onChangeRole={(r) => {
+          setCurrentRole(r);
+          showToast('info', `Role Switched: ${r.toUpperCase()}`);
+        }}
+        toolVisibility={toolVisibility}
+        onToggleToolVisibility={handleToggleToolVisibility}
+        searchQuery={globalSearchQuery}
+        onSearchChange={setGlobalSearchQuery}
+      />
+
+      {/* Radiant Luxury Ambient Nightclub RGB Layers */}
       <div className="fixed inset-0 opacity-25 bg-dot-grid pointer-events-none z-0" />
       
       {/* Dynamic Nightclub RGB Breathing Aura & Club Laser Beams */}
@@ -486,7 +628,7 @@ export default function App() {
               className="flex items-center gap-2 px-4 py-2 badge-docs-luxury rounded-xl text-[10px] uppercase tracking-[0.2em] font-black cursor-pointer text-[#F5D98E]"
             >
               <FileText className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>ឯកសារប្រព័ន្ធ (DOCS)</span>
+              <span>SYSTEM DOCS</span>
             </button>
 
             {/* Direct Official ABA PayWay Link 1-Tap Trigger */}
@@ -539,12 +681,12 @@ export default function App() {
           </div>
         </header>
 
-        {/* 6 HIGH-TECH GAMER / CYBERPUNK STYLES SELECTOR BAR (ប្រព័ន្ធអ្នកលេងស្តាយ និងផ្លាស់ប្តូរបានច្រើនសណ្ឋាន) */}
+        {/* 6 HIGH-TECH GAMER / CYBERPUNK STYLES SELECTOR BAR */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-[#0C0A06]/95 border-2 mb-8 border-[#D4AF37]/30 shadow-2xl backdrop-blur-md">
           <div className="flex items-center gap-2">
             <Palette className="w-4 h-4 text-[#D4AF37]" />
             <span className="text-xs font-mono font-black uppercase text-white tracking-wider flex items-center gap-1.5">
-              <span>ប្រព័ន្ធអ្នកលេងស្តាយ (6 Switchable 5D Themes):</span>
+              <span>Theme Matrix (6 Switchable 5D Themes):</span>
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -596,64 +738,83 @@ export default function App() {
         {/* NAVIGATION TABS WITH ARTISTIC FLAIR */}
         
         {/* DEFENSE & MANAGEMENT TABS */}
-        <div className="mb-2 flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-[#CCFF00]" />
-          <h3 className="text-[10px] font-black font-mono uppercase tracking-[0.2em] text-[#CCFF00]">
-            ប្រព័ន្ធការពារ និងគ្រប់គ្រង (DEFENSE & MANAGEMENT)
-          </h3>
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-[#CCFF00]" />
+            <h3 className="text-[10px] font-black font-mono uppercase tracking-[0.2em] text-[#CCFF00]">
+              DEFENSE & SUITE MANAGEMENT
+            </h3>
+          </div>
+          <span className="text-[10px] font-mono text-white/40">
+            VIEW MODE: <span className="text-[#CCFF00] font-bold uppercase">{currentRole}</span>
+          </span>
         </div>
         <div className="flex items-center gap-6 sm:gap-8 mb-6 border-b border-[#CCFF00]/20 pb-1 text-[11px] uppercase tracking-[0.25em] font-bold overflow-x-auto">
           {/* 1. FIRST PRIORITY: COMMERCIAL STOREFRONT & SPECIAL PROMOTION */}
-          <button
-            onClick={() => setActiveTab('sales')}
-            className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
-              activeTab === 'sales'
-                ? 'border-b-2 border-[#D4AF37] text-[#F5D98E] font-black'
-                : 'text-white/40 hover:text-white border-b-2 border-transparent'
-            }`}
-          >
-            <ShoppingBag className="w-3.5 h-3.5 text-[#E0FF00]" />
-            <span>🛒 ទីផ្សារលក់ License & ប្រូម៉ូសិនពិសេស (Commercial Store)</span>
-          </button>
+          {toolVisibility.showStore && (
+            <button
+              onClick={() => setActiveTab('sales')}
+              className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
+                activeTab === 'sales'
+                  ? 'border-b-2 border-[#D4AF37] text-[#F5D98E] font-black'
+                  : 'text-white/40 hover:text-white border-b-2 border-transparent'
+              }`}
+            >
+              <ShoppingBag className="w-3.5 h-3.5 text-[#E0FF00]" />
+              <span>🛒 Commercial Store & Promotions</span>
+            </button>
+          )}
 
           {/* 2. BANK HACK & DEFENSE */}
-          <button
-            onClick={() => setActiveTab('banking')}
-            className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
-              activeTab === 'banking'
-                ? 'border-b-2 border-[#D4AF37] text-[#F5D98E] font-black'
-                : 'text-white/40 hover:text-white border-b-2 border-transparent'
-            }`}
-          >
-            <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span>🏦 Bank Hack & 5D Defense (កម្រិតកំពូលធនាគារ)</span>
-          </button>
+          {toolVisibility.showBanking && (
+            <button
+              onClick={() => setActiveTab('banking')}
+              className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
+                activeTab === 'banking'
+                  ? 'border-b-2 border-[#D4AF37] text-[#F5D98E] font-black'
+                  : 'text-white/40 hover:text-white border-b-2 border-transparent'
+              }`}
+            >
+              <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>🏦 Bank Hack & 5D Defense Engine</span>
+            </button>
+          )}
 
           {/* 3. LICENSES MANAGER */}
-          <button
-            onClick={() => setActiveTab('licenses')}
-            className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
-              activeTab === 'licenses'
-                ? 'border-b-2 border-[#D4AF37] text-white font-black'
-                : 'text-white/40 hover:text-white border-b-2 border-transparent'
-            }`}
-          >
-            <Key className="w-3.5 h-3.5 text-[#E0FF00]" />
-            <span>Licenses // {licenses.length}</span>
-          </button>
+          {toolVisibility.showLicenses && (
+            <button
+              onClick={() => {
+                if (activeTab === 'licenses') {
+                  checkAndTriggerLicenseExpiryReminder();
+                } else {
+                  setActiveTab('licenses');
+                }
+              }}
+              className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
+                activeTab === 'licenses'
+                  ? 'border-b-2 border-[#D4AF37] text-white font-black'
+                  : 'text-white/40 hover:text-white border-b-2 border-transparent'
+              }`}
+            >
+              <Key className="w-3.5 h-3.5 text-[#E0FF00]" />
+              <span>Licenses // {licenses.length}</span>
+            </button>
+          )}
 
           {/* 4. SUPER ADMIN PERMISSIONS */}
-          <button
-            onClick={() => setActiveTab('superadmin')}
-            className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
-              activeTab === 'superadmin'
-                ? 'border-b-2 border-[#D4AF37] text-[#F5D98E] font-black'
-                : 'text-white/40 hover:text-white border-b-2 border-transparent'
-            }`}
-          >
-            <UserCheck className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span>Super Admin (កំណត់សិទ្ធិអតិថិជន)</span>
-          </button>
+          {toolVisibility.showSuperAdmin && currentRole !== 'client' && (
+            <button
+              onClick={() => setActiveTab('superadmin')}
+              className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
+                activeTab === 'superadmin'
+                  ? 'border-b-2 border-[#D4AF37] text-[#F5D98E] font-black'
+                  : 'text-white/40 hover:text-white border-b-2 border-transparent'
+              }`}
+            >
+              <UserCheck className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>Super Admin & Client RBAC</span>
+            </button>
+          )}
 
           {/* 5. CYBER GLOW BUTTONS */}
           <button
@@ -665,67 +826,75 @@ export default function App() {
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-[#CCFF00]" />
-            <span>Cyber Glow Buttons (ស្ទីលបងផ្ញើ)</span>
+            <span>Cyber Glow Tactical Buttons</span>
           </button>
 
           {/* 6. AI GEMINI ASSISTANT */}
-          <button
-            onClick={() => setActiveTab('gemini')}
-            className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
-              activeTab === 'gemini'
-                ? 'border-b-2 border-[#CCFF00] text-[#CCFF00] font-black'
-                : 'text-white/40 hover:text-[#CCFF00] border-b-2 border-transparent'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#CCFF00]" />
-            <span>AI Gemini Security Assistant</span>
-          </button>
+          {toolVisibility.showGeminiAi && (
+            <button
+              onClick={() => setActiveTab('gemini')}
+              className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
+                activeTab === 'gemini'
+                  ? 'border-b-2 border-[#CCFF00] text-[#CCFF00] font-black'
+                  : 'text-white/40 hover:text-[#CCFF00] border-b-2 border-transparent'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#CCFF00]" />
+              <span>Ai Menimi (Security Assistant)</span>
+            </button>
+          )}
 
           {/* 7. GAME ESPORTS ARMOR */}
-          <button
-            onClick={() => setActiveTab('alpha8')}
-            className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
-              activeTab === 'alpha8'
-                ? 'border-b-2 border-[#00E5FF] text-[#00E5FF] font-black'
-                : 'text-white/40 hover:text-[#00E5FF] border-b-2 border-transparent'
-            }`}
-          >
-            <Gamepad2 className="w-3.5 h-3.5 text-[#00E5FF]" />
-            <span>Game & Esports Armor</span>
-          </button>
+          {toolVisibility.showAlpha8 && (
+            <button
+              onClick={() => setActiveTab('alpha8')}
+              className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
+                activeTab === 'alpha8'
+                  ? 'border-b-2 border-[#00E5FF] text-[#00E5FF] font-black'
+                  : 'text-white/40 hover:text-[#00E5FF] border-b-2 border-transparent'
+              }`}
+            >
+              <Gamepad2 className="w-3.5 h-3.5 text-[#00E5FF]" />
+              <span>Game & Esports Armor</span>
+            </button>
+          )}
 
           {/* 8. THREAT INTEL */}
-          <button
-            onClick={() => setActiveTab('threats')}
-            className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
-              activeTab === 'threats'
-                ? 'border-b-2 border-[#FF3B30] text-[#FF3B30] font-black'
-                : 'text-white/40 hover:text-white border-b-2 border-transparent'
-            }`}
-          >
-            <ShieldAlert className="w-3.5 h-3.5 text-[#FF3B30]" />
-            <span>Threat Logs // {threats.length}</span>
-          </button>
+          {toolVisibility.showSecurityAudit && currentRole !== 'client' && (
+            <button
+              onClick={() => setActiveTab('threats')}
+              className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
+                activeTab === 'threats'
+                  ? 'border-b-2 border-[#FF3B30] text-[#FF3B30] font-black'
+                  : 'text-white/40 hover:text-white border-b-2 border-transparent'
+              }`}
+            >
+              <ShieldAlert className="w-3.5 h-3.5 text-[#FF3B30]" />
+              <span>Threat Logs // {threats.length}</span>
+            </button>
+          )}
 
           {/* 9. CONNECTED DEVICES */}
-          <button
-            onClick={() => setActiveTab('devices')}
-            className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
-              activeTab === 'devices'
-                ? 'border-b-2 border-white text-white font-black'
-                : 'text-white/40 hover:text-white border-b-2 border-transparent'
-            }`}
-          >
-            <HardDrive className="w-3.5 h-3.5 text-white/60" />
-            <span>Devices // {devices.length}</span>
-          </button>
+          {currentRole !== 'client' && (
+            <button
+              onClick={() => setActiveTab('devices')}
+              className={`flex items-center gap-2.5 pb-2 transition-all cursor-pointer shrink-0 ${
+                activeTab === 'devices'
+                  ? 'border-b-2 border-white text-white font-black'
+                  : 'text-white/40 hover:text-white border-b-2 border-transparent'
+              }`}
+            >
+              <HardDrive className="w-3.5 h-3.5 text-white/60" />
+              <span>Devices // {devices.length}</span>
+            </button>
+          )}
         </div>
 
         {/* OFFENSIVE & ATTACK TABS */}
         <div className="mb-2 mt-6 flex items-center gap-2">
           <Flame className="w-4 h-4 text-[#FF3B30]" />
           <h3 className="text-[10px] font-black font-mono uppercase tracking-[0.2em] text-[#FF3B30]">
-            ប្រព័ន្ធវាយប្រហារ និងសាកល្បងសុវត្ថិភាព (OFFENSIVE & ATTACK)
+            OFFENSIVE SIMULATION & STRESS TESTING
           </h3>
         </div>
         <div className="flex items-center gap-6 sm:gap-8 mb-8 border-b border-[#FF3B30]/20 pb-1 text-[11px] uppercase tracking-[0.25em] font-bold overflow-x-auto">
@@ -739,7 +908,7 @@ export default function App() {
             }`}
           >
             <Flame className="w-3.5 h-3.5 text-[#FF3B30]" />
-            <span>Offensive Hacker Arena (ទីលានវាយប្រហារ)</span>
+            <span>Offensive Hacker Arena (Cyber War Room)</span>
           </button>
         </div>
 
@@ -761,6 +930,7 @@ export default function App() {
             onDeleteLicense={handleDeleteLicense}
             onExportCSV={handleExportCSV}
             onOpenKhqrModal={() => setIsKhqrModalOpen(true)}
+            onCheckExpiryReminder={checkAndTriggerLicenseExpiryReminder}
           />
         )}
 
@@ -818,9 +988,9 @@ export default function App() {
             threats={filteredThreats}
             onSimulateThreat={handleSimulateThreat}
             onClearThreats={() => {
-              if (confirm('តើអ្នកពិតជាចង់សម្អាតកំណត់ត្រាការវាយប្រហារទាំងអស់មែនទេ?')) {
+              if (confirm('Are you sure you want to clear all threat incident records?')) {
                 setThreats([]);
-                showToast('info', 'បានសម្អាត Threat Logs');
+                showToast('info', 'Threat logs cleared');
               }
             }}
           />
@@ -837,7 +1007,7 @@ export default function App() {
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-white tracking-tight mt-1">
-                  បញ្ជីឧបករណ៍ភ្ជាប់ Hardware Seats
+                  Active Hardware Nodes & Seat Bindings
                 </h3>
               </div>
               <div className="text-xs font-mono text-white/50">
@@ -885,12 +1055,12 @@ export default function App() {
                   </div>
 
                   <div className="flex items-center justify-between pt-1 text-[10px] text-white/40 font-mono">
-                    <span>SEEN: {new Date(device.first_activated).toLocaleDateString('km-KH')}</span>
+                    <span>SEEN: {new Date(device.first_activated).toLocaleDateString()}</span>
                     <button
                       onClick={() => handleUnlinkDevice(device.device_id)}
                       className="text-[#FF3B30] hover:text-white uppercase tracking-widest text-[9px] font-bold cursor-pointer"
                     >
-                      [ ផ្ដាច់ SEAT ]
+                      [ UNLINK SEAT ]
                     </button>
                   </div>
                 </div>
@@ -998,13 +1168,29 @@ export default function App() {
         currentUser={googleUser}
         onSignIn={(u) => {
           setGoogleUser(u);
-          showToast('success', 'បានចូលប្រើប្រាស់តាម Google ដោយជោគជ័យ!', u.email);
+          showToast('success', 'Google Sign-in Successful!', u.email);
+        }}
+        onSignInSuccess={(u) => {
+          setGoogleUser(u);
+          showToast('success', 'Google Sign-in Successful!', u.email);
         }}
         onSignOut={() => {
           setGoogleUser(null);
-          showToast('info', 'បានចាកចេញពីគណនី Google');
+          showToast('info', 'Signed out from Google Account');
         }}
         activeTheme={activeLogoStyle}
+      />
+
+      <ProgramProfileModal
+        isOpen={isProgramProfileOpen}
+        onClose={() => setIsProgramProfileOpen(false)}
+        currentUser={googleUser}
+        onUpdateUser={(updated) => {
+          setGoogleUser(updated);
+        }}
+        onShowToast={(type, msg) => {
+          showToast(type, msg);
+        }}
       />
 
       {/* FLOATING AUTO-HIDE AI GEMINI INBOX (BOTTOM RIGHT) */}
