@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PixelForge Studio v3.0 — Ghost King Khmer Edition</title>
+<style>
+:root{
+  --bg-0:#0a0a12;--bg-1:#0f0f1e;--bg-2:#151528;
+  --panel:#1a1a2e;--panel-2:#1f1f35;--panel-3:#252540;
+  --line:#2a2a45;--line-2:#353560;
+  --ink:#e8e8f0;--ink-2:#a8a8c0;--muted:#6a6a85;
+  --brand:#a855f7;--brand-2:#d946ef;--brand-3:#f0abfc;--brand-dark:#7c3aed;
+  --brand-glow:rgba(168,85,247,.4);
+  --cyan:#06b6d4;--cyan-glow:rgba(6,182,212,.4);
+  --gold:#fbbf24;--gold-glow:rgba(251,191,36,.4);
+  --danger:#ef4444;--ok:#10b981;--warn:#f59e0b;
+  --radius:8px;--radius-lg:12px;
+  --transition:.2s cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:"Inter","Segoe UI","Khmer OS Battambang","Noto Sans Khmer",Arial,sans-serif;
+  background:var(--bg-0);color:var(--ink);font-size:13px;
+  user-select:none;-webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(168,85,247,.08) 0%, transparent 45%),
+    radial-gradient(circle at 85% 75%, rgba(6,182,212,.06) 0%, transparent 45%);
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse at top left, rgba(168,85,247,.15), transparent 40%),
+    radial-gradient(ellipse at bottom right, rgba(6,182,212,.12), transparent 40%);
+  mix-blend-mode:screen;opacity:.6;
+}
+.app{display:flex;flex-direction:column;height:100vh;position:relative;z-index:1}
+
+/* ===== TOP BAR ===== */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg, rgba(26,26,46,.95), rgba(21,21,40,.95));
+  border-bottom:1px solid var(--line);
+  padding:8px 16px;height:52px;flex-shrink:0;gap:12px;
+  backdrop-filter:blur(20px);position:relative;
+}
+.topbar::after{
+  content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;
+  background:linear-gradient(90deg, transparent, var(--brand), transparent);
+  opacity:.6;
+}
+.topbar .logo{
+  display:flex;align-items:center;gap:10px;
+  font-weight:800;font-size:17px;letter-spacing:.5px;white-space:nowrap;
+  font-family:"Khmer OS Bokor","Noto Serif Khmer",serif;
+}
+.topbar .logo-icon{
+  width:28px;height:28px;border-radius:8px;
+  background:linear-gradient(135deg, var(--brand), var(--cyan));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:900;color:#fff;
+  box-shadow:0 0 15px var(--brand-glow);
+  font-family:"Khmer OS Bokor",serif;
+}
+.topbar .logo-text{
+  background:linear-gradient(135deg, var(--brand-3), var(--cyan));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 30px var(--brand-glow);
+  font-size:15px;
+}
+.topbar .menu{display:flex;gap:2px;flex-wrap:wrap}
+.topbar .menu button{
+  background:transparent;border:none;color:var(--ink-2);
+  padding:6px 10px;border-radius:6px;cursor:pointer;
+  font-size:12px;font-family:"Khmer OS Battambang",sans-serif;font-weight:500;
+  transition:all var(--transition);
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+}
+.topbar .menu button .kh{font-size:10.5px;color:var(--muted);font-weight:400}
+.topbar .menu button:hover{background:var(--panel-3);color:var(--brand-3);box-shadow:0 0 12px rgba(168,85,247,.15)}
+.topbar .menu button:hover .kh{color:var(--brand-3)}
+.topbar .actions{display:flex;gap:6px;align-items:center}
+.zoom-btn{
+  width:28px;height:28px;border-radius:6px;border:1px solid var(--line);
+  background:var(--panel-2);color:var(--ink-2);cursor:pointer;
+  font-size:15px;font-weight:bold;display:flex;align-items:center;justify-content:center;
+  transition:all var(--transition);
+}
+.zoom-btn:hover{border-color:var(--brand);color:var(--brand-3);box-shadow:0 0 10px var(--brand-glow)}
+#zoomLabel{
+  font-size:11.5px;color:var(--brand-3);min-width:48px;text-align:center;
+  padding:5px 8px;background:var(--panel);border-radius:5px;border:1px solid var(--line);
+  font-weight:600;font-family:"SF Mono",monospace;
+}
+.btn-top{
+  padding:6px 12px;border-radius:6px;border:1px solid var(--line);
+  background:var(--panel-2);color:var(--ink);cursor:pointer;
+  font-size:11.5px;font-family:"Khmer OS Battambang",sans-serif;font-weight:500;
+  transition:all var(--transition);
+}
+.btn-top:hover{border-color:var(--brand);color:var(--brand-3);background:var(--panel-3);box-shadow:0 0 15px var(--brand-glow)}
+.btn-top.primary{
+  background:linear-gradient(135deg, var(--brand), var(--brand-dark));
+  border-color:var(--brand);color:#fff;box-shadow:0 0 20px var(--brand-glow);
+}
+.btn-top.primary:hover{background:linear-gradient(135deg, var(--brand-2), var(--brand))}
+
+/* ===== MAIN ===== */
+.main{display:flex;flex:1;overflow:hidden}
+
+/* ===== TOOLBAR WIDE (with Khmer labels) ===== */
+.toolbar{
+  width:170px;background:linear-gradient(180deg, var(--panel-2), var(--panel));
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;
+  padding:8px 6px;gap:2px;overflow-y:auto;flex-shrink:0;
+  scrollbar-width:thin;scrollbar-color:var(--line) transparent;
+}
+.toolbar::-webkit-scrollbar{width:4px}
+.toolbar::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+.tool-btn{
+  display:flex;align-items:center;gap:8px;
+  width:100%;padding:6px 8px;border-radius:6px;
+  border:1px solid transparent;background:transparent;
+  color:var(--ink-2);cursor:pointer;
+  font-family:"Khmer OS Battambang",sans-serif;
+  transition:all var(--transition);
+  text-align:left;
+}
+.tool-btn:hover{
+  background:var(--panel-3);color:var(--brand-3);
+  border-color:var(--brand-dark);
+  box-shadow:0 0 12px rgba(168,85,247,.15);
+}
+.tool-btn.active{
+  background:linear-gradient(135deg, var(--brand), var(--brand-dark));
+  color:#fff;border-color:var(--brand-2);
+  box-shadow:0 0 15px var(--brand-glow), inset 0 1px 0 rgba(255,255,255,.2);
+}
+.tool-btn .tool-key{
+  width:26px;height:26px;border-radius:5px;
+  background:var(--panel-3);color:var(--brand-3);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:11px;flex-shrink:0;
+  font-family:"SF Mono",monospace;
+  border:1px solid var(--line-2);
+}
+.tool-btn.active .tool-key{
+  background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3);
+}
+.tool-btn .tool-name{
+  font-size:11.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.tool-sep{
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--line),transparent);
+  margin:5px 4px;
+}
+
+/* ===== CANVAS AREA ===== */
+.canvas-wrap{
+  flex:1;overflow:hidden;position:relative;
+  background:
+    linear-gradient(45deg, #0a0a14 25%, transparent 25%),
+    linear-gradient(-45deg, #0a0a14 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #0a0a14 75%),
+    linear-gradient(-45deg, transparent 75%, #0a0a14 75%),
+    var(--bg-1);
+  background-size:20px 20px;
+  background-position:0 0, 0 10px, 10px -10px, 10px 0;
+  display:flex;align-items:center;justify-content:center;
+}
+.canvas-viewport{position:absolute;inset:0;overflow:hidden;cursor:crosshair}
+.canvas-stage{
+  position:absolute;top:50%;left:50%;transform-origin:0 0;
+  filter:drop-shadow(0 0 30px rgba(168,85,247,.15));
+}
+.canvas-stack{
+  position:relative;background:#fff;
+  border:1px solid var(--line-2);
+  box-shadow:0 0 40px rgba(168,85,247,.15), 0 0 80px rgba(6,182,212,.08);
+}
+.canvas-stack canvas{display:block}
+#overlayCanvas{position:absolute;top:0;left:0;pointer-events:none}
+#gridCanvas{position:absolute;top:0;left:0;pointer-events:none;opacity:.5}
+.ruler-h,.ruler-v{position:absolute;background:var(--panel-2);border-color:var(--line);z-index:10}
+.ruler-h{top:0;left:0;right:0;height:22px;border-bottom:1px solid var(--line);display:none}
+.ruler-v{top:0;left:0;bottom:0;width:22px;border-right:1px solid var(--line);display:none}
+.ruler-h.show,.ruler-v.show{display:block}
+
+/* ===== RIGHT PANEL ===== */
+.right-panel{
+  width:300px;background:linear-gradient(180deg, var(--panel), var(--panel-2));
+  border-left:1px solid var(--line);
+  display:flex;flex-direction:column;flex-shrink:0;
+  overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line) transparent;
+}
+.right-panel::-webkit-scrollbar{width:6px}
+.right-panel::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+.panel-section{
+  border-bottom:1px solid var(--line);
+  padding:10px 14px;position:relative;
+}
+.panel-section::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:linear-gradient(90deg, transparent, var(--brand-dark), transparent);
+  opacity:.3;
+}
+.panel-section h4{
+  font-size:11px;color:var(--brand-3);margin-bottom:10px;
+  font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;user-select:none;
+  font-family:"Khmer OS Battambang",sans-serif;
+}
+.panel-section h4 .kh{font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400}
+.panel-section h4 .toggle-icon{
+  font-size:12px;color:var(--muted);
+  transition:transform var(--transition);
+  font-family:"SF Mono",monospace;font-weight:700;
+}
+.panel-section.collapsed h4 .toggle-icon{transform:rotate(-90deg)}
+.panel-section.collapsed .panel-body{display:none}
+.panel-body{animation:slideDown .2s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+
+.layer-list{display:flex;flex-direction:column;gap:3px;max-height:220px;overflow-y:auto;scrollbar-width:thin}
+.layer-item{
+  display:flex;align-items:center;gap:8px;padding:7px 9px;
+  border-radius:6px;cursor:pointer;background:var(--panel);
+  border:1px solid transparent;transition:all var(--transition);
+  position:relative;
+}
+.layer-item:hover{background:var(--panel-3);border-color:var(--line-2)}
+.layer-item.active{
+  background:linear-gradient(135deg, rgba(168,85,247,.2), rgba(6,182,212,.1));
+  border-color:var(--brand);
+  box-shadow:inset 0 0 20px rgba(168,85,247,.1);
+}
+.layer-item .thumb{
+  width:36px;height:36px;background:var(--bg-0);border-radius:4px;
+  border:1px solid var(--line-2);overflow:hidden;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.layer-item .thumb canvas{width:100%;height:100%;object-fit:cover}
+.layer-item .info{flex:1;min-width:0;overflow:hidden}
+.layer-item .name{
+  font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:var(--ink);font-weight:500;font-family:"Khmer OS Battambang",sans-serif;
+}
+.layer-item.active .name{color:var(--brand-3)}
+.layer-item .vis{
+  width:22px;height:22px;cursor:pointer;flex-shrink:0;
+  font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  border-radius:4px;transition:all var(--transition);
+  font-family:"SF Mono",monospace;
+  background:var(--panel-3);color:var(--muted);
+  border:1px solid var(--line-2);
+}
+.layer-item .vis:hover{background:var(--brand-dark);color:#fff}
+.layer-item .vis.on{background:rgba(16,185,129,.2);color:#10b981;border-color:rgba(16,185,129,.4)}
+
+.btn{
+  padding:6px 11px;border-radius:6px;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink);cursor:pointer;font-size:11.5px;
+  font-family:"Khmer OS Battambang",sans-serif;font-weight:500;
+  transition:all var(--transition);
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+}
+.btn:hover{border-color:var(--brand);color:var(--brand-3);background:var(--panel-3);box-shadow:0 0 12px var(--brand-glow)}
+.btn.primary{background:linear-gradient(135deg, var(--brand), var(--brand-dark));border-color:var(--brand);color:#fff;box-shadow:0 0 15px var(--brand-glow)}
+.btn.primary:hover{background:linear-gradient(135deg, var(--brand-2), var(--brand))}
+.btn.danger{background:transparent;color:var(--danger);border-color:rgba(239,68,68,.4)}
+.btn.danger:hover{background:rgba(239,68,68,.15);border-color:var(--danger);color:#fff}
+.btn.small{padding:4px 8px;font-size:11px}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+
+.control-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.control-row label{
+  flex:0 0 90px;font-size:11px;color:var(--ink-2);font-weight:500;
+  font-family:"Khmer OS Battambang",sans-serif;
+}
+.control-row input[type=range]{flex:1;accent-color:var(--brand);height:4px}
+.control-row input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,var(--brand-dark),var(--brand));border-radius:2px;height:4px}
+.control-row input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:var(--brand-3);margin-top:-5px;cursor:pointer;box-shadow:0 0 8px var(--brand-glow)}
+.control-row input[type=number]{
+  width:64px;background:var(--bg-0);border:1px solid var(--line);
+  color:var(--ink);padding:4px 8px;border-radius:4px;font-size:11px;
+  font-family:"SF Mono",monospace;
+}
+.control-row input[type=color]{
+  width:42px;height:28px;border:1px solid var(--line);border-radius:5px;
+  background:var(--panel);cursor:pointer;padding:2px;
+}
+.control-row select{
+  flex:1;background:var(--bg-0);border:1px solid var(--line);
+  color:var(--ink);padding:5px 8px;border-radius:4px;
+  font-size:11px;font-family:"Khmer OS Battambang",sans-serif;cursor:pointer;
+}
+
+.filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.filter-btn{
+  padding:6px 4px;font-size:10.5px;border-radius:5px;
+  background:var(--panel);border:1px solid var(--line);color:var(--ink-2);
+  cursor:pointer;font-family:"Khmer OS Battambang",sans-serif;font-weight:500;
+  transition:all var(--transition);text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+}
+.filter-btn .kh{font-size:9.5px;color:var(--muted)}
+.filter-btn:hover{border-color:var(--brand);color:var(--brand-3);background:var(--panel-3);box-shadow:0 0 10px var(--brand-glow)}
+.filter-btn:hover .kh{color:var(--brand-3)}
+
+.slider-group{margin-bottom:10px}
+.slider-group label{
+  font-size:11px;color:var(--ink-2);display:flex;justify-content:space-between;
+  margin-bottom:5px;font-weight:500;
+  font-family:"Khmer OS Battambang",sans-serif;
+}
+.slider-group label span{color:var(--brand-3);font-weight:600;font-family:"SF Mono",monospace}
+.slider-group input[type=range]{width:100%;accent-color:var(--brand);height:4px}
+
+.info-grid{
+  display:grid;grid-template-columns:auto 1fr;gap:6px 10px;
+  font-size:11px;font-family:"Khmer OS Battambang",sans-serif;
+}
+.info-grid .k{color:var(--ink-2)}
+.info-grid .v{color:var(--brand-3);font-weight:600;text-align:right;font-family:"SF Mono",monospace}
+
+/* ===== OPTIONS BAR ===== */
+.options-bar{
+  height:44px;
+  background:linear-gradient(180deg, var(--panel-2), var(--panel));
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;padding:0 16px;gap:14px;
+  flex-shrink:0;overflow-x:auto;scrollbar-width:none;
+  backdrop-filter:blur(10px);
+}
+.options-bar::-webkit-scrollbar{display:none}
+.options-bar label{
+  font-size:11px;color:var(--ink-2);white-space:nowrap;font-weight:500;
+  font-family:"Khmer OS Battambang",sans-serif;
+}
+.options-bar input[type=range]{width:90px;accent-color:var(--brand);height:4px}
+.options-bar input[type=number]{
+  width:52px;background:var(--bg-0);border:1px solid var(--line);
+  color:var(--ink);padding:4px 6px;border-radius:4px;font-size:11px;
+  font-family:"SF Mono",monospace;
+}
+.options-bar input[type=color]{width:34px;height:24px;border:1px solid var(--line);border-radius:4px;cursor:pointer;padding:1px;background:var(--panel)}
+.options-bar select{
+  background:var(--bg-0);border:1px solid var(--line);color:var(--ink);
+  padding:4px 8px;border-radius:4px;font-size:11px;
+  font-family:"Khmer OS Battambang",sans-serif;cursor:pointer;
+}
+#toolName{
+  font-weight:700;color:var(--brand-3);
+  padding:4px 12px;background:var(--panel-3);border-radius:6px;
+  font-size:11.5px;letter-spacing:.3px;
+  box-shadow:inset 0 0 15px rgba(168,85,247,.1);
+  border:1px solid var(--brand-dark);
+  font-family:"Khmer OS Battambang",sans-serif;
+  display:flex;flex-direction:column;line-height:1.3;
+}
+#toolName .en{font-size:10px;color:var(--muted);font-weight:400}
+
+/* ===== STATUS BAR ===== */
+.statusbar{
+  height:28px;
+  background:linear-gradient(0deg, var(--panel-2), var(--panel));
+  border-top:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;font-size:11px;color:var(--muted);flex-shrink:0;
+  font-family:"Khmer OS Battambang",sans-serif;
+  backdrop-filter:blur(10px);
+}
+.statusbar .left,.statusbar .right{display:flex;gap:14px;align-items:center}
+#statusText{color:var(--ink-2)}
+#cursorPos{color:var(--cyan);font-family:"SF Mono",monospace;font-size:11px}
+#colorPreview{width:16px;height:16px;background:#a855f7;border:1px solid var(--line-2);border-radius:4px;box-shadow:0 0 6px rgba(168,85,247,.3)}
+.kbd{
+  display:inline-block;padding:1px 6px;border-radius:3px;
+  background:var(--panel-3);color:var(--brand-3);
+  font-family:"SF Mono",monospace;font-size:10px;font-weight:600;
+  border:1px solid var(--line-2);margin:0 1px;
+}
+
+/* ===== MODALS ===== */
+.modal{
+  position:fixed;inset:0;background:rgba(5,5,15,.85);
+  display:flex;align-items:center;justify-content:center;
+  z-index:1000;padding:20px;backdrop-filter:blur(8px);
+  animation:fadeIn .2s ease;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal[hidden]{display:none}
+.modal-box{
+  background:linear-gradient(180deg, var(--panel), var(--panel-2));
+  border:1px solid var(--line-2);border-radius:var(--radius-lg);
+  padding:22px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.6), 0 0 40px rgba(168,85,247,.15);
+  animation:modalIn .25s cubic-bezier(.4,0,.2,1);
+  position:relative;
+  font-family:"Khmer OS Battambang",sans-serif;
+}
+.modal-box::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg, transparent, var(--brand), var(--cyan), transparent);
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-box h3{
+  margin-bottom:16px;color:var(--brand-3);font-size:15px;font-weight:700;
+  letter-spacing:.3px;font-family:"Khmer OS Bokor","Noto Serif Khmer",serif;
+}
+.modal-box h3 .en{font-size:11.5px;color:var(--muted);font-family:"Inter",sans-serif;font-weight:400;margin-left:6px}
+.modal-box .form-grid{display:grid;gap:12px}
+.modal-box .form-grid label{
+  font-size:11.5px;color:var(--ink-2);display:block;margin-bottom:5px;font-weight:500;
+  font-family:"Khmer OS Battambang",sans-serif;
+}
+.modal-box .form-grid label .en{color:var(--muted);font-size:10px;font-family:"Inter",sans-serif;margin-left:4px}
+.modal-box .form-grid input,
+.modal-box .form-grid textarea,
+.modal-box .form-grid select{
+  width:100%;background:var(--bg-0);border:1px solid var(--line);
+  color:var(--ink);padding:9px 11px;border-radius:6px;
+  font-size:12.5px;font-family:"Khmer OS Battambang",sans-serif;
+  transition:border var(--transition);
+}
+.modal-box .form-grid input:focus,
+.modal-box .form-grid textarea:focus,
+.modal-box .form-grid select:focus{
+  outline:none;border-color:var(--brand);box-shadow:0 0 12px var(--brand-glow);
+}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+
+.shortcut-grid{
+  display:grid;grid-template-columns:auto 1fr;gap:8px 16px;
+  font-size:12px;font-family:"Khmer OS Battambang",sans-serif;
+}
+.shortcut-grid .key{
+  font-family:"SF Mono",monospace;font-weight:700;
+  color:var(--brand-3);background:var(--panel-3);
+  padding:3px 10px;border-radius:4px;border:1px solid var(--line-2);
+  text-align:center;white-space:nowrap;
+}
+.shortcut-grid .desc{color:var(--ink-2);padding-top:3px}
+.shortcut-grid .desc .en{color:var(--muted);font-size:10.5px;font-family:"Inter",sans-serif;margin-left:4px}
+.shortcut-heading{
+  color:var(--cyan);font-weight:700;font-size:11.5px;
+  text-transform:uppercase;letter-spacing:1px;
+  margin:14px 0 8px;padding-bottom:4px;
+  border-bottom:1px solid var(--line);
+  font-family:"Khmer OS Battambang",sans-serif;
+  display:flex;gap:6px;align-items:baseline;
+}
+.shortcut-heading .en{font-size:10px;color:var(--muted);text-transform:none;letter-spacing:0;font-family:"Inter",sans-serif;font-weight:400}
+
+@media(max-width:1000px){.right-panel{width:250px}.toolbar{width:150px}}
+@media(max-width:780px){.right-panel{display:none}.topbar .menu{display:none}.toolbar{width:130px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon">PF</div>
+      <span class="logo-text">PIXELFORGE</span>
+    </div>
+    <div class="menu">
+      <button id="menuNew"><span>ថ្មី</span><span class="kh">New (Ctrl+N)</span></button>
+      <button id="menuOpen"><span>បើក</span><span class="kh">Open (Ctrl+O)</span></button>
+      <button id="menuSave"><span>រក្សាទុក</span><span class="kh">Save (Ctrl+S)</span></button>
+      <button id="menuExport"><span>នាំចេញ</span><span class="kh">Export (Ctrl+E)</span></button>
+      <button id="menuHelp"><span>ជំនួយ</span><span class="kh">Help (F1)</span></button>
+    </div>
+    <div class="actions">
+      <button class="btn-top" id="undoBtn" title="Undo (Ctrl+Z) — ត្រឡប់ក្រោយ">ត្រឡប់</button>
+      <button class="btn-top" id="redoBtn" title="Redo (Ctrl+Y) — ធ្វើវិញ">ធ្វើវិញ</button>
+      <button class="zoom-btn" id="zoomOut" title="Zoom Out (Ctrl+-)">−</button>
+      <span id="zoomLabel">100%</span>
+      <button class="zoom-btn" id="zoomIn" title="Zoom In (Ctrl++)">+</button>
+      <button class="zoom-btn" id="zoomFit" title="Fit (F12)">⊡</button>
+      <button class="btn-top primary" id="menuExport2">នាំចេញ (F8)</button>
+    </div>
+  </div>
+
+  <!-- OPTIONS BAR -->
+  <div class="options-bar" id="optionsBar">
+    <span id="toolName">ជក់<span class="en">Brush</span></span>
+    <label>ទំហំ</label>
+    <input type="range" id="optSize" min="1" max="300" value="20">
+    <input type="number" id="optSizeNum" min="1" max="300" value="20">
+    <label>តម្លាភាព</label>
+    <input type="range" id="optOpacity" min="1" max="100" value="100">
+    <span id="optOpacityVal" style="font-size:11px;color:var(--brand-3);min-width:32px;font-weight:600;font-family:'SF Mono',monospace">100</span>
+    <label>ពណ៌</label>
+    <input type="color" id="optColor" value="#a855f7">
+    <label>របៀប</label>
+    <select id="optBlend">
+      <option value="source-over">ធម្មតា (Normal)</option>
+      <option value="multiply">គុណ (Multiply)</option>
+      <option value="screen">អេក្រង់ (Screen)</option>
+      <option value="overlay">ត្រួត (Overlay)</option>
+      <option value="darken">ខ្មៅ (Darken)</option>
+      <option value="lighten">ភ្លឺ (Lighten)</option>
+      <option value="color-dodge">Color Dodge</option>
+      <option value="color-burn">Color Burn</option>
+      <option value="soft-light">Soft Light</option>
+      <option value="hard-light">Hard Light</option>
+      <option value="difference">Difference</option>
+      <option value="exclusion">Exclusion</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:5px;cursor:pointer">
+      <input type="checkbox" id="gridToggle" style="accent-color:var(--brand)">ក្រឡា (F3)
+    </label>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOOLBAR with Khmer Labels -->
+    <div class="toolbar" id="toolbar">
+      <button class="tool-btn active" data-tool="brush" title="ជក់ថ្នាំលាប (B)">
+        <span class="tool-key">B</span><span class="tool-name">ជក់ថ្នាំលាប</span>
+      </button>
+      <button class="tool-btn" data-tool="eraser" title="ជ័រលុប (E)">
+        <span class="tool-key">E</span><span class="tool-name">ជ័រលុប</span>
+      </button>
+      <button class="tool-btn" data-tool="fill" title="ចាក់ពណ៌ (G)">
+        <span class="tool-key">G</span><span class="tool-name">ចាក់ពណ៌</span>
+      </button>
+      <button class="tool-btn" data-tool="gradient" title="ពណ៌ជម្រាល">
+        <span class="tool-key">GR</span><span class="tool-name">ពណ៌ជម្រាល</span>
+      </button>
+      <button class="tool-btn" data-tool="picker" title="ជ្រើសពណ៌ (I)">
+        <span class="tool-key">I</span><span class="tool-name">ជ្រើសពណ៌</span>
+      </button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" data-tool="select-rect" title="ជ្រើសចតុកោណ (M)">
+        <span class="tool-key">M</span><span class="tool-name">ជ្រើសចតុកោណ</span>
+      </button>
+      <button class="tool-btn" data-tool="select-ellipse" title="ជ្រើសរង្វង់">
+        <span class="tool-key">O</span><span class="tool-name">ជ្រើសរង្វង់</span>
+      </button>
+      <button class="tool-btn" data-tool="lasso" title="ជ្រើសសេរី (L)">
+        <span class="tool-key">L</span><span class="tool-name">ជ្រើសសេរី</span>
+      </button>
+      <button class="tool-btn" data-tool="wand" title="ដំបងវេទមន្ត (W)">
+        <span class="tool-key">W</span><span class="tool-name">ដំបងវេទមន្ត</span>
+      </button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" data-tool="move" title="រំកិល (V)">
+        <span class="tool-key">V</span><span class="tool-name">រំកិល</span>
+      </button>
+      <button class="tool-btn" data-tool="crop" title="កាត់ត (C)">
+        <span class="tool-key">C</span><span class="tool-name">កាត់ត</span>
+      </button>
+      <button class="tool-btn" data-tool="text" title="អក្សរ (T)">
+        <span class="tool-key">T</span><span class="tool-name">អក្សរ</span>
+      </button>
+      <button class="tool-btn" data-tool="shape" title="រូបរាង">
+        <span class="tool-key">S</span><span class="tool-name">រូបរាង</span>
+      </button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" data-tool="blur" title="ព្រិល">
+        <span class="tool-key">BL</span><span class="tool-name">ព្រិល</span>
+      </button>
+      <button class="tool-btn" data-tool="sharpen" title="ធ្វើឲ្យច្បាស់">
+        <span class="tool-key">SH</span><span class="tool-name">ធ្វើឲ្យច្បាស់</span>
+      </button>
+      <button class="tool-btn" data-tool="dodge" title="បំភ្លឺ">
+        <span class="tool-key">D</span><span class="tool-name">បំភ្លឺ</span>
+      </button>
+      <button class="tool-btn" data-tool="burn" title="ដុតខ្មៅ">
+        <span class="tool-key">BR</span><span class="tool-name">ដុតខ្មៅ</span>
+      </button>
+      <button class="tool-btn" data-tool="smudge" title="រលាយ">
+        <span class="tool-key">SM</span><span class="tool-name">រលាយ</span>
+      </button>
+      <button class="tool-btn" data-tool="clone" title="ចម្លង">
+        <span class="tool-key">CS</span><span class="tool-name">ចម្លង</span>
+      </button>
+      <button class="tool-btn" data-tool="redeye" title="លុបភ្នែកក្រហម">
+        <span class="tool-key">RE</span><span class="tool-name">លុបភ្នែកក្រហម</span>
+      </button>
+    </div>
+
+    <!-- CANVAS -->
+    <div class="canvas-wrap" id="canvasWrap">
+      <div class="ruler-h" id="rulerH"></div>
+      <div class="ruler-v" id="rulerV"></div>
+      <div class="canvas-viewport" id="canvasViewport">
+        <div class="canvas-stage" id="canvasStage">
+          <div class="canvas-stack" id="canvasStack">
+            <canvas id="mainCanvas" width="800" height="600"></canvas>
+            <canvas id="overlayCanvas" width="800" height="600"></canvas>
+            <canvas id="gridCanvas" width="800" height="600"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+      <!-- LAYERS -->
+      <div class="panel-section" id="section-layers">
+        <h4><span>ស្រទាប់ <span class="kh">Layers (F9)</span></span><span class="toggle-icon">▾</span></h4>
+        <div class="panel-body">
+          <div class="layer-list" id="layerList"></div>
+          <div class="btn-row" style="margin-top:8px">
+            <button class="btn small" id="addLayer" title="បន្ថែមស្រទាប់ថ្មី">+ បន្ថែម</button>
+            <button class="btn small" id="dupLayer" title="ចម្លងស្រទាប់">ចម្លង</button>
+            <button class="btn small" id="maskLayer" title="របាំងស្រទាប់">របាំង</button>
+            <button class="btn small danger" id="delLayer" title="លុបស្រទាប់">លុប</button>
+            <button class="btn small" id="mergeLayer" title="បញ្ចូលស្រទាប់">បញ្ចូល</button>
+          </div>
+          <div style="margin-top:10px">
+            <div class="slider-group">
+              <label>តម្លាភាព <span id="layerOpacityVal">100</span>%</label>
+              <input type="range" id="layerOpacity" min="0" max="100" value="100">
+            </div>
+            <div class="control-row">
+              <label>របៀបលាយ</label>
+              <select id="layerBlend">
+                <option value="source-over">ធម្មតា</option>
+                <option value="multiply">គុណ</option>
+                <option value="screen">អេក្រង់</option>
+                <option value="overlay">ត្រួត</option>
+                <option value="darken">ខ្មៅ</option>
+                <option value="lighten">ភ្លឺ</option>
+                <option value="color-dodge">Color Dodge</option>
+                <option value="color-burn">Color Burn</option>
+                <option value="soft-light">Soft Light</option>
+                <option value="hard-light">Hard Light</option>
+                <option value="difference">Difference</option>
+                <option value="exclusion">Exclusion</option>
+                <option value="hue">Hue</option>
+                <option value="saturation">Saturation</option>
+                <option value="color">Color</option>
+                <option value="luminosity">Luminosity</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADJUSTMENTS -->
+      <div class="panel-section" id="section-adjust">
+        <h4><span>កែសម្រួល <span class="kh">Adjustments (F10)</span></span><span class="toggle-icon">▾</span></h4>
+        <div class="panel-body">
+          <div class="slider-group">
+            <label>ពន្លឺ <span id="brightVal">100</span></label>
+            <input type="range" id="adjBright" min="0" max="200" value="100">
+          </div>
+          <div class="slider-group">
+            <label>កម្រិតពណ៌ <span id="contrastVal">100</span></label>
+            <input type="range" id="adjContrast" min="0" max="200" value="100">
+          </div>
+          <div class="slider-group">
+            <label>ឆ្អែតពណ៌ <span id="satVal">100</span></label>
+            <input type="range" id="adjSat" min="0" max="200" value="100">
+          </div>
+          <div class="slider-group">
+            <label>ពណ៌លំអៀង <span id="hueVal">0</span>°</label>
+            <input type="range" id="adjHue" min="-180" max="180" value="0">
+          </div>
+          <div class="btn-row" style="margin-top:8px">
+            <button class="btn small primary" id="applyAdj" title="អនុវត្តការកែសម្រួល">អនុវត្ត</button>
+            <button class="btn small" id="resetAdj" title="កំណត់ឡើងវិញ">កំណត់ឡើងវិញ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="panel-section" id="section-filters">
+        <h4><span>តម្រង <span class="kh">Filters (F11)</span></span><span class="toggle-icon">▾</span></h4>
+        <div class="panel-body">
+          <div class="filter-grid">
+            <button class="filter-btn" data-filter="grayscale"><span>ខ្មៅស</span><span class="kh">Grayscale</span></button>
+            <button class="filter-btn" data-filter="sepia"><span>ស៊ីពៀ</span><span class="kh">Sepia</span></button>
+            <button class="filter-btn" data-filter="invert"><span>ដាក់បញ្ច្រាស</span><span class="kh">Invert</span></button>
+            <button class="filter-btn" data-filter="vintage"><span>បុរាណ</span><span class="kh">Vintage</span></button>
+            <button class="filter-btn" data-filter="warm"><span>ក្តៅ</span><span class="kh">Warm</span></button>
+            <button class="filter-btn" data-filter="cool"><span>ត្រជាក់</span><span class="kh">Cool</span></button>
+            <button class="filter-btn" data-filter="blur"><span>ព្រិល</span><span class="kh">Blur</span></button>
+            <button class="filter-btn" data-filter="sharpen"><span>ច្បាស់</span><span class="kh">Sharpen</span></button>
+            <button class="filter-btn" data-filter="noise"><span>សំឡេងរញ្ជួយ</span><span class="kh">Noise</span></button>
+            <button class="filter-btn" data-filter="emboss"><span>ចារិក</span><span class="kh">Emboss</span></button>
+            <button class="filter-btn" data-filter="edge"><span>គែម</span><span class="kh">Edge</span></button>
+            <button class="filter-btn" data-filter="posterize"><span>ប៉ូស្ទ័រ</span><span class="kh">Posterize</span></button>
+            <button class="filter-btn" data-filter="threshold"><span>កម្រិត</span><span class="kh">Threshold</span></button>
+            <button class="filter-btn" data-filter="mosaic"><span>ផ្គុំរូប</span><span class="kh">Mosaic</span></button>
+            <button class="filter-btn" data-filter="vignette"><span>វីញេត</span><span class="kh">Vignette</span></button>
+            <button class="filter-btn" data-filter="oil"><span>ពណ៌ប្រេង</span><span class="kh">Oil Paint</span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSFORM -->
+      <div class="panel-section" id="section-transform">
+        <h4><span>បំលែង <span class="kh">Transform</span></span><span class="toggle-icon">▾</span></h4>
+        <div class="panel-body">
+          <div class="btn-row">
+            <button class="btn small" id="flipH" title="ត្រឡប់ផ្ដេក">ត្រឡប់ផ្ដេក</button>
+            <button class="btn small" id="flipV" title="ត្រឡប់ឈរ">ត្រឡប់ឈរ</button>
+            <button class="btn small" id="rotate90" title="បង្វិល 90°">បង្វិល 90°</button>
+            <button class="btn small" id="resizeBtn" title="ប្តូរទំហំ">ប្តូរទំហំ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INFO -->
+      <div class="panel-section" id="section-info">
+        <h4><span>ព័ត៌មាន <span class="kh">Info</span></span><span class="toggle-icon">▾</span></h4>
+        <div class="panel-body">
+          <div class="info-grid">
+            <span class="k">ទំហំ</span><span class="v" id="infoSize">800 × 600</span>
+            <span class="k">ស្រទាប់</span><span class="v" id="infoLayer">Background</span>
+            <span class="k">ប្រវត្តិ</span><span class="v" id="infoHistory">0</span>
+            <span class="k">ពង្រីក</span><span class="v" id="infoZoom">100%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <div class="left">
+      <span id="statusText">ត្រៀមរួចរាល់ — Ghost King Edition</span>
+    </div>
+    <div class="right">
+      <span id="cursorPos">0, 0</span>
+      <span id="colorPreview" style="background:#a855f7"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SHORTCUTS HELP MODAL (F1) ===== -->
+<div class="modal" id="modalHelp" hidden>
+  <div class="modal-box" style="max-width:640px">
+    <h3>មុខងារគ្រាប់ចុច<span class="en">Keyboard Shortcuts</span></h3>
+
+    <div class="shortcut-heading">Function Keys <span class="en">គ្រាប់ចុចមុខងារ</span></div>
+    <div class="shortcut-grid">
+      <div class="key">F1</div><div class="desc">បង្ហាញមុខងារគ្រាប់ចុច <span class="en">Show Shortcuts Help</span></div>
+      <div class="key">F2</div><div class="desc">ប្តូរឈ្មោះស្រទាប់សកម្ម <span class="en">Rename Active Layer</span></div>
+      <div class="key">F3</div><div class="desc">បិទ/បើកក្រឡា <span class="en">Toggle Grid</span></div>
+      <div class="key">F4</div><div class="desc">បិទ/បើកបន្ទាត់វាស់ <span class="en">Toggle Rulers</span></div>
+      <div class="key">F5</div><div class="desc">ឯកសារថ្មី <span class="en">New Document</span></div>
+      <div class="key">F6</div><div class="desc">បើករូបភាព <span class="en">Open Image</span></div>
+      <div class="key">F7</div><div class="desc">រក្សាទុកក្នុង Browser <span class="en">Save to Browser</span></div>
+      <div class="key">F8</div><div class="desc">នាំចេញរូបភាព <span class="en">Export Image</span></div>
+      <div class="key">F9</div><div class="desc">បិទ/បើកផ្ទាំងស្រទាប់ <span class="en">Toggle Layers Panel</span></div>
+      <div class="key">F10</div><div class="desc">បិទ/បើកការកែសម្រួល <span class="en">Toggle Adjustments</span></div>
+      <div class="key">F11</div><div class="desc">បិទ/បើកតម្រង <span class="en">Toggle Filters</span></div>
+      <div class="key">F12</div><div class="desc">សមនឹងអេក្រង់ <span class="en">Fit to Screen</span></div>
+    </div>
+
+    <div class="shortcut-heading">Tools <span class="en">ឧបករណ៍</span></div>
+    <div class="shortcut-grid">
+      <div class="key">B</div><div class="desc">ជក់ថ្នាំលាប <span class="en">Brush</span></div>
+      <div class="key">E</div><div class="desc">ជ័រលុប <span class="en">Eraser</span></div>
+      <div class="key">G</div><div class="desc">ចាក់ពណ៌ <span class="en">Fill</span></div>
+      <div class="key">I</div><div class="desc">ជ្រើសពណ៌ <span class="en">Color Picker</span></div>
+      <div class="key">M</div><div class="desc">ជ្រើសចតុកោណ <span class="en">Rectangle Select</span></div>
+      <div class="key">L</div><div class="desc">ជ្រើសសេរី <span class="en">Lasso</span></div>
+      <div class="key">V</div><div class="desc">រំកិល <span class="en">Move</span></div>
+      <div class="key">C</div><div class="desc">កាត់ត <span class="en">Crop</span></div>
+      <div class="key">T</div><div class="desc">អក្សរ <span class="en">Text</span></div>
+      <div class="key">W</div><div class="desc">ដំបងវេទមន្ត <span class="en">Magic Wand</span></div>
+    </div>
+
+    <div class="shortcut-heading">Actions <span class="en">សកម្មភាព</span></div>
+    <div class="shortcut-grid">
+      <div class="key">Ctrl+Z</div><div class="desc">ត្រឡប់ក្រោយ <span class="en">Undo</span></div>
+      <div class="key">Ctrl+Y</div><div class="desc">ធ្វើវិញ <span class="en">Redo</span></div>
+      <div class="key">Ctrl+S</div><div class="desc">រក្សាទុក <span class="en">Save</span></div>
+      <div class="key">Ctrl+E</div><div class="desc">នាំចេញ <span class="en">Export</span></div>
+      <div class="key">Ctrl+N</div><div class="desc">ឯកសារថ្មី <span class="en">New</span></div>
+      <div class="key">Ctrl+O</div><div class="desc">បើក <span class="en">Open</span></div>
+      <div class="key">Ctrl+D</div><div class="desc">ដោះជម្រើស <span class="en">Deselect</span></div>
+      <div class="key">Ctrl+A</div><div class="desc">ជ្រើសទាំងអស់ <span class="en">Select All</span></div>
+      <div class="key">Ctrl++</div><div class="desc">ពង្រីក <span class="en">Zoom In</span></div>
+      <div class="key">Ctrl+-</div><div class="desc">បង្រួម <span class="en">Zoom Out</span></div>
+      <div class="key">Ctrl+0</div><div class="desc">សមនឹងអេក្រង់ <span class="en">Fit</span></div>
+      <div class="key">Space</div><div class="desc">អូសផ្ទាំង <span class="en">Pan Canvas</span></div>
+      <div class="key">Esc</div><div class="desc">បោះបង់ <span class="en">Cancel</span></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn primary" id="helpClose">បិទ (Close)</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESIZE MODAL ===== -->
+<div class="modal" id="modalResize" hidden>
+  <div class="modal-box">
+    <h3>ប្តូរទំហំ<span class="en">Resize Canvas</span></h3>
+    <div class="form-grid">
+      <div><label>ទទឹង (px)<span class="en">Width</span></label><input type="number" id="resizeW" min="1" max="4000" value="800"></div>
+      <div><label>កម្ពស់ (px)<span class="en">Height</span></label><input type="number" id="resizeH" min="1" max="4000" value="600"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="resizeCancel">បោះបង់</button>
+      <button class="btn primary" id="resizeApply">អនុវត្ត</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EXPORT MODAL ===== -->
+<div class="modal" id="modalExport" hidden>
+  <div class="modal-box">
+    <h3>នាំចេញរូបភាព<span class="en">Export Image</span></h3>
+    <div class="form-grid">
+      <div>
+        <label>ទម្រង់<span class="en">Format</span></label>
+        <select id="exportFormat">
+          <option value="image/png">PNG (គ្មានការបាត់បង់)</option>
+          <option value="image/jpeg">JPEG</option>
+          <option value="image/webp">WebP</option>
+        </select>
+      </div>
+      <div>
+        <label>គុណភាព <span id="qualityVal" style="color:var(--brand-3)">92</span>%<span class="en">Quality</span></label>
+        <input type="range" id="exportQuality" min="10" max="100" value="92" style="width:100%;accent-color:var(--brand)">
+      </div>
+      <div>
+        <label>ឈ្មោះឯកសារ<span class="en">Filename</span></label>
+        <input type="text" id="exportFilename" value="pixelforge">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="exportCancel">បោះបង់</button>
+      <button class="btn primary" id="exportConfirm">ទាញយក</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TEXT MODAL ===== -->
+<div class="modal" id="modalText" hidden>
+  <div class="modal-box">
+    <h3>បន្ថែមអក្សរ<span class="en">Add Text</span></h3>
+    <div class="form-grid">
+      <div><label>ខ្លឹមសារ<span class="en">Content</span></label><textarea id="textContent" rows="3" placeholder="បញ្ចូលអក្សរ..."></textarea></div>
+      <div><label>ទំហំអក្សរ (px)<span class="en">Font Size</span></label><input type="number" id="textSize" value="48" min="8" max="400"></div>
+      <div><label>ពុម្ពអក្សរ<span class="en">Font Family</span></label>
+        <select id="textFont">
+          <option value="'Khmer OS Battambang', sans-serif">Khmer Battambang</option>
+          <option value="'Khmer OS Bokor', serif">Khmer Bokor</option>
+          <option value="sans-serif">Sans-Serif</option>
+          <option value="serif">Serif</option>
+          <option value="monospace">Monospace</option>
+        </select>
+      </div>
+      <div><label>ពណ៌<span class="en">Color</span></label><input type="color" id="textColor" value="#ffffff" style="width:100%;height:38px;border-radius:6px;border:1px solid var(--line);background:var(--bg-0)"></div>
+      <div><label>រចនាប័ទ្ម<span class="en">Style</span></label>
+        <select id="textStyle">
+          <option value="normal">ធម្មតា</option>
+          <option value="bold">ដិត</option>
+          <option value="italic">ទ្រេត</option>
+          <option value="bold italic">ដិត+ទ្រេត</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="textCancel">បោះបង់</button>
+      <button class="btn primary" id="textApply">បន្ថែម</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SHAPE MODAL ===== -->
+<div class="modal" id="modalShape" hidden>
+  <div class="modal-box">
+    <h3>រូបរាង<span class="en">Shape Settings</span></h3>
+    <div class="form-grid">
+      <div><label>ប្រភេទ<span class="en">Type</span></label>
+        <select id="shapeType">
+          <option value="rect">ចតុកោណ</option>
+          <option value="ellipse">រង្វង់</option>
+          <option value="line">បន្ទាត់</option>
+          <option value="triangle">ត្រីកោណ</option>
+          <option value="star">ផ្កាយ</option>
+        </select>
+      </div>
+      <div><label>ពណ៌បំពេញ<span class="en">Fill</span></label><input type="color" id="shapeFill" value="#a855f7" style="width:100%;height:38px;border-radius:6px;border:1px solid var(--line);background:var(--bg-0)"></div>
+      <div><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="shapeStroke" style="width:auto;accent-color:var(--brand)">បន្ថែមគែម</label></div>
+      <div><label>ពណ៌គែម<span class="en">Stroke Color</span></label><input type="color" id="shapeStrokeColor" value="#d946ef" style="width:100%;height:38px;border-radius:6px;border:1px solid var(--line);background:var(--bg-0)"></div>
+      <div><label>កម្រាស់គែម<span class="en">Stroke Width</span></label><input type="number" id="shapeStrokeWidth" value="2" min="0" max="50"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="shapeCancel">បោះបង់</button>
+      <button class="btn primary" id="shapeApply">គូរ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ============================================================
+   PIXELFORGE STUDIO v3.0 — GHOST KING KHMER EDITION
+   No emoji. Khmer labels. F1-F12 shortcuts.
+   ============================================================ */
+
+const $ = id => document.getElementById(id);
+
+const state = {
+  tool: 'brush',
+  brush: { size: 20, opacity: 100, color: '#a855f7', blend: 'source-over' },
+  zoom: 1, panX: 0, panY: 0,
+  layers: [], activeLayerId: null,
+  history: [], historyIndex: -1,
+  selection: null, lassoPoints: [],
+  isDrawing: false, isSelecting: false, isPanning: false,
+  isCropping: false, isMovingLayer: false,
+  panStart: null, moveStart: null, cropRect: null,
+  cloneSource: null, lastPos: null,
+  currentShape: null, shapeStart: null, gradientStart: null,
+  textPos: null,
+  canvasW: 800, canvasH: 600,
+  gridVisible: false, rulersVisible: false,
+  spaceDown: false
+};
+
+const TOOL_KH = {
+  brush: { kh: 'ជក់ថ្នាំលាប', en: 'Brush' },
+  eraser: { kh: 'ជ័រលុប', en: 'Eraser' },
+  fill: { kh: 'ចាក់ពណ៌', en: 'Fill' },
+  gradient: { kh: 'ពណ៌ជម្រាល', en: 'Gradient' },
+  picker: { kh: 'ជ្រើសពណ៌', en: 'Color Picker' },
+  'select-rect': { kh: 'ជ្រើសចតុកោណ', en: 'Rect Select' },
+  'select-ellipse': { kh: 'ជ្រើសរង្វង់', en: 'Ellipse Select' },
+  lasso: { kh: 'ជ្រើសសេរី', en: 'Lasso' },
+  wand: { kh: 'ដំបងវេទមន្ត', en: 'Magic Wand' },
+  move: { kh: 'រំកិល', en: 'Move' },
+  crop: { kh: 'កាត់ត', en: 'Crop' },
+  text: { kh: 'អក្សរ', en: 'Text' },
+  shape: { kh: 'រូបរាង', en: 'Shape' },
+  blur: { kh: 'ព្រិល', en: 'Blur' },
+  sharpen: { kh: 'ធ្វើឲ្យច្បាស់', en: 'Sharpen' },
+  dodge: { kh: 'បំភ្លឺ', en: 'Dodge' },
+  burn: { kh: 'ដុតខ្មៅ', en: 'Burn' },
+  smudge: { kh: 'រលាយ', en: 'Smudge' },
+  clone: { kh: 'ចម្លង', en: 'Clone Stamp' },
+  redeye: { kh: 'លុបភ្នែកក្រហម', en: 'Red Eye' }
+};
+
+const mainCanvas = $('mainCanvas');
+const overlayCanvas = $('overlayCanvas');
+const gridCanvas = $('gridCanvas');
+const mainCtx = mainCanvas.getContext('2d', { willReadFrequently: true });
+const overlayCtx = overlayCanvas.getContext('2d');
+const gridCtx = gridCanvas.getContext('2d');
+
+function resizeCanvas(w, h) {
+  state.canvasW = w; state.canvasH = h;
+  mainCanvas.width = w; mainCanvas.height = h;
+  overlayCanvas.width = w; overlayCanvas.height = h;
+  gridCanvas.width = w; gridCanvas.height = h;
+  drawGrid(); updateInfo(); renderAll(); fitCanvas();
+}
+
+function fitCanvas() {
+  const vw = $('canvasViewport').clientWidth;
+  const vh = $('canvasViewport').clientHeight;
+  const scale = Math.min((vw - 80) / state.canvasW, (vh - 80) / state.canvasH, 1);
+  state.zoom = Math.max(0.1, scale);
+  applyViewTransform();
+}
+
+function applyViewTransform() {
+  const vw = $('canvasViewport').clientWidth;
+  const vh = $('canvasViewport').clientHeight;
+  $('canvasStage').style.transform = `translate(${(vw - state.canvasW * state.zoom) / 2 + state.panX}px, ${(vh - state.canvasH * state.zoom) / 2 + state.panY}px) scale(${state.zoom})`;
+  $('zoomLabel').textContent = Math.round(state.zoom * 100) + '%';
+  $('infoZoom').textContent = Math.round(state.zoom * 100) + '%';
+}
+
+function drawGrid() {
+  gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+  if (!state.gridVisible) return;
+  gridCtx.strokeStyle = 'rgba(168,85,247,.3)';
+  gridCtx.lineWidth = 1 / state.zoom;
+  const step = 50;
+  for (let x = step; x < gridCanvas.width; x += step) {
+    gridCtx.beginPath(); gridCtx.moveTo(x, 0); gridCtx.lineTo(x, gridCanvas.height); gridCtx.stroke();
+  }
+  for (let y = step; y < gridCanvas.height; y += step) {
+    gridCtx.beginPath(); gridCtx.moveTo(0, y); gridCtx.lineTo(gridCanvas.width, y); gridCtx.stroke();
+  }
+}
+
+let layerCounter = 0;
+function createLayer(name, w, h) {
+  const c = document.createElement('canvas');
+  c.width = w || state.canvasW; c.height = h || state.canvasH;
+  return {
+    id: 'l' + (++layerCounter),
+    name: name || 'ស្រទាប់ ' + layerCounter,
+    canvas: c, ctx: c.getContext('2d'),
+    visible: true, opacity: 1, blend: 'source-over', mask: null
+  };
+}
+
+function initLayers() {
+  const bg = createLayer('ផ្ទៃខាងក្រោយ', state.canvasW, state.canvasH);
+  bg.ctx.fillStyle = '#ffffff';
+  bg.ctx.fillRect(0, 0, state.canvasW, state.canvasH);
+  state.layers = [bg];
+  state.activeLayerId = bg.id;
+  renderLayerList(); syncLayerControls();
+}
+
+function getActiveLayer() { return state.layers.find(l => l.id === state.activeLayerId) || state.layers[0]; }
+
+function renderLayerList() {
+  const list = $('layerList');
+  list.innerHTML = '';
+  [...state.layers].reverse().forEach(layer => {
+    const item = document.createElement('div');
+    item.className = 'layer-item' + (layer.id === state.activeLayerId ? ' active' : '');
+    const thumb = document.createElement('div');
+    thumb.className = 'thumb';
+    const tc = document.createElement('canvas');
+    tc.width = 36; tc.height = 36;
+    tc.getContext('2d').drawImage(layer.canvas, 0, 0, 36, 36);
+    thumb.appendChild(tc);
+    const vis = document.createElement('div');
+    vis.className = 'vis' + (layer.visible ? ' on' : '');
+    vis.textContent = layer.visible ? 'ON' : 'OFF';
+    vis.title = layer.visible ? 'បង្ហាញ — ចុចដើម្បីលាក់' : 'លាក់ — ចុចដើម្បីបង្ហាញ';
+    vis.addEventListener('click', e => {
+      e.stopPropagation();
+      layer.visible = !layer.visible;
+      renderAll(); renderLayerList();
+    });
+    const info = document.createElement('div');
+    info.className = 'info';
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = layer.name;
+    info.appendChild(name);
+    item.appendChild(thumb); item.appendChild(vis); item.appendChild(info);
+    item.addEventListener('click', () => {
+      state.activeLayerId = layer.id;
+      renderLayerList(); syncLayerControls(); updateInfo();
+    });
+    list.appendChild(item);
+  });
+}
+
+function syncLayerControls() {
+  const l = getActiveLayer(); if (!l) return;
+  $('layerOpacity').value = Math.round(l.opacity * 100);
+  $('layerOpacityVal').textContent = Math.round(l.opacity * 100);
+  $('layerBlend').value = l.blend;
+}
+
+function renderAll() {
+  mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+  state.layers.forEach(layer => {
+    if (!layer.visible) return;
+    mainCtx.save();
+    mainCtx.globalAlpha = layer.opacity;
+    mainCtx.globalCompositeOperation = layer.blend;
+    if (layer.mask) {
+      const tmp = document.createElement('canvas');
+      tmp.width = layer.canvas.width; tmp.height = layer.canvas.height;
+      const tctx = tmp.getContext('2d');
+      tctx.drawImage(layer.canvas, 0, 0);
+      tctx.globalCompositeOperation = 'destination-in';
+      tctx.drawImage(layer.mask, 0, 0);
+      mainCtx.drawImage(tmp, 0, 0);
+    } else {
+      mainCtx.drawImage(layer.canvas, 0, 0);
+    }
+    mainCtx.restore();
+  });
+  drawOverlay();
+}
+
+function drawOverlay() {
+  overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+  if (state.selection) {
+    const s = state.selection;
+    overlayCtx.strokeStyle = '#a855f7';
+    overlayCtx.lineWidth = 1.5 / state.zoom;
+    overlayCtx.setLineDash([6, 4]);
+    overlayCtx.shadowBlur = 10; overlayCtx.shadowColor = '#a855f7';
+    if (s.type === 'rect') overlayCtx.strokeRect(s.x, s.y, s.w, s.h);
+    else if (s.type === 'ellipse') {
+      overlayCtx.beginPath();
+      overlayCtx.ellipse(s.x + s.w / 2, s.y + s.h / 2, Math.abs(s.w / 2), Math.abs(s.h / 2), 0, 0, Math.PI * 2);
+      overlayCtx.stroke();
+    } else if (s.type === 'lasso' && state.lassoPoints.length > 1) {
+      overlayCtx.beginPath();
+      overlayCtx.moveTo(state.lassoPoints[0].x, state.lassoPoints[0].y);
+      state.lassoPoints.forEach(p => overlayCtx.lineTo(p.x, p.y));
+      overlayCtx.closePath(); overlayCtx.stroke();
+    }
+    overlayCtx.setLineDash([]); overlayCtx.shadowBlur = 0;
+  }
+  if (state.isCropping && state.cropRect) {
+    const c = state.cropRect;
+    overlayCtx.strokeStyle = '#a855f7';
+    overlayCtx.lineWidth = 2 / state.zoom;
+    overlayCtx.strokeRect(c.x, c.y, c.w, c.h);
+    overlayCtx.fillStyle = 'rgba(5,5,15,.6)';
+    overlayCtx.fillRect(0, 0, overlayCanvas.width, c.y);
+    overlayCtx.fillRect(0, c.y + c.h, overlayCanvas.width, overlayCanvas.height - c.y - c.h);
+    overlayCtx.fillRect(0, c.y, c.x, c.h);
+    overlayCtx.fillRect(c.x + c.w, c.y, overlayCanvas.width - c.x - c.w, c.h);
+  }
+  if (state.shapeStart && state.currentShape) {
+    overlayCtx.strokeStyle = '#a855f7';
+    overlayCtx.lineWidth = 2 / state.zoom;
+    overlayCtx.setLineDash([4, 4]);
+    const s = state.currentShape;
+    overlayCtx.strokeRect(s.x, s.y, s.w, s.h);
+    overlayCtx.setLineDash([]);
+  }
+}
+
+function getCanvasPos(e) {
+  const rect = mainCanvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (mainCanvas.width / rect.width),
+    y: (e.clientY - rect.top) * (mainCanvas.height / rect.height)
+  };
+}
+
+function startDraw(e) {
+  const pos = getCanvasPos(e);
+  state.lastPos = pos;
+  if (['brush', 'eraser', 'blur', 'sharpen', 'dodge', 'burn', 'smudge'].includes(state.tool)) {
+    state.isDrawing = true; drawStroke(pos, pos);
+  } else if (state.tool === 'fill') { floodFill(pos); pushHistory(); }
+  else if (state.tool === 'gradient') { state.gradientStart = pos; state.isDrawing = true; }
+  else if (state.tool === 'picker') pickColor(pos);
+  else if (state.tool === 'clone') {
+    if (!state.cloneSource) { state.cloneSource = pos; setStatus('កំណត់ចំណុចចម្លងរួចរាល់'); }
+    else { state.isDrawing = true; stampClone(pos); }
+  } else if (state.tool === 'redeye') { removeRedEye(pos); pushHistory(); }
+  else if (['select-rect', 'select-ellipse', 'lasso'].includes(state.tool)) startSelection(e);
+  else if (state.tool === 'wand') magicWand(pos);
+  else if (state.tool === 'crop') {
+    state.isCropping = true;
+    state.cropRect = { x: pos.x, y: pos.y, w: 0, h: 0 };
+    state.isDrawing = true;
+  } else if (state.tool === 'text') { state.textPos = pos; $('modalText').hidden = false; }
+  else if (state.tool === 'shape') {
+    state.shapeStart = pos;
+    state.currentShape = { x: pos.x, y: pos.y, w: 0, h: 0 };
+    state.isDrawing = true;
+    $('modalShape').hidden = false;
+  } else if (state.tool === 'move') { state.isMovingLayer = true; state.moveStart = pos; }
+}
+
+function moveDraw(e) {
+  const pos = getCanvasPos(e);
+  $('cursorPos').textContent = Math.round(pos.x) + ', ' + Math.round(pos.y);
+  if (state.isSelecting) { updateSelection(pos); return; }
+  if (state.isCropping && state.cropRect) {
+    state.cropRect.w = pos.x - state.cropRect.x;
+    state.cropRect.h = pos.y - state.cropRect.y;
+    drawOverlay(); return;
+  }
+  if (state.currentShape && state.shapeStart) {
+    state.currentShape.w = pos.x - state.shapeStart.x;
+    state.currentShape.h = pos.y - state.shapeStart.y;
+    drawOverlay(); return;
+  }
+  if (state.isMovingLayer && state.moveStart) {
+    const dx = pos.x - state.moveStart.x, dy = pos.y - state.moveStart.y;
+    const l = getActiveLayer();
+    if (l) {
+      const tmp = document.createElement('canvas');
+      tmp.width = l.canvas.width; tmp.height = l.canvas.height;
+      tmp.getContext('2d').drawImage(l.canvas, dx, dy);
+      l.ctx.clearRect(0, 0, l.canvas.width, l.canvas.height);
+      l.ctx.drawImage(tmp, 0, 0);
+      state.moveStart = pos; renderAll();
+    }
+    return;
+  }
+  if (!state.isDrawing) return;
+  if (state.tool === 'gradient') return;
+  if (['brush', 'eraser', 'blur', 'sharpen', 'dodge', 'burn', 'smudge'].includes(state.tool)) {
+    drawStroke(state.lastPos, pos); state.lastPos = pos;
+  }
+}
+
+function endDraw(e) {
+  if (state.isDrawing) {
+    if (state.tool === 'gradient' && state.gradientStart) {
+      applyGradient(state.gradientStart, getCanvasPos(e));
+    }
+    state.isDrawing = false; state.gradientStart = null; pushHistory();
+  }
+  if (state.isSelecting) finishSelection();
+  if (state.isCropping && state.cropRect) applyCrop();
+  if (state.isMovingLayer) { state.isMovingLayer = false; state.moveStart = null; pushHistory(); }
+  if (state.currentShape) { state.currentShape = null; state.shapeStart = null; drawOverlay(); }
+  state.lastPos = null;
+}
+
+function drawStroke(from, to) {
+  const l = getActiveLayer(); if (!l) return;
+  const ctx = l.ctx;
+  ctx.save();
+  let comp = state.tool === 'eraser' ? 'destination-out' : state.brush.blend;
+  if (state.tool === 'dodge') comp = 'lighter';
+  if (state.tool === 'burn') comp = 'multiply';
+  ctx.globalCompositeOperation = comp;
+  ctx.globalAlpha = state.brush.opacity / 100;
+  ctx.strokeStyle = state.tool === 'eraser' ? '#000' : state.brush.color;
+  ctx.lineWidth = state.brush.size;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (state.tool === 'blur' || state.tool === 'sharpen') {
+    const r = state.brush.size / 2;
+    const x = Math.max(0, to.x - r), y = Math.max(0, to.y - r);
+    const w = Math.min(l.canvas.width - x, r * 2), h = Math.min(l.canvas.height - y, r * 2);
+    if (w <= 0 || h <= 0) { ctx.restore(); return; }
+    const imgData = ctx.getImageData(x, y, w, h);
+    if (state.tool === 'blur') applyBoxBlurData(imgData, 1);
+    else applySharpenData(imgData);
+    ctx.putImageData(imgData, x, y);
+  } else if (state.tool === 'smudge') {
+    const r = state.brush.size / 2;
+    ctx.globalAlpha = 0.15;
+    ctx.beginPath(); ctx.arc(to.x, to.y, r, 0, Math.PI * 2); ctx.clip();
+    ctx.drawImage(l.canvas, from.x - r, from.y - r, r * 2, r * 2, to.x - r, to.y - r, r * 2, r * 2);
+  } else {
+    ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(to.x, to.y); ctx.stroke();
+  }
+  ctx.restore(); renderAll();
+}
+
+function applyGradient(from, to) {
+  const l = getActiveLayer(); if (!l) return;
+  const ctx = l.ctx;
+  const grad = ctx.createLinearGradient(from.x, from.y, to.x, to.y);
+  grad.addColorStop(0, state.brush.color);
+  grad.addColorStop(1, '#000000');
+  ctx.save();
+  ctx.globalAlpha = state.brush.opacity / 100;
+  ctx.globalCompositeOperation = state.brush.blend;
+  if (state.selection) {
+    ctx.beginPath();
+    const s = state.selection;
+    if (s.type === 'ellipse') ctx.ellipse(s.x + s.w / 2, s.y + s.h / 2, Math.abs(s.w / 2), Math.abs(s.h / 2), 0, 0, Math.PI * 2);
+    else ctx.rect(s.x, s.y, s.w, s.h);
+    ctx.clip();
+  }
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, l.canvas.width, l.canvas.height);
+  ctx.restore(); renderAll();
+  setStatus('បានអនុវត្តពណ៌ជម្រាល');
+}
+
+function floodFill(pos) {
+  const l = getActiveLayer(); if (!l) return;
+  const ctx = l.ctx;
+  const w = l.canvas.width, h = l.canvas.height;
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+  const sx = Math.floor(pos.x), sy = Math.floor(pos.y);
+  if (sx < 0 || sy < 0 || sx >= w || sy >= h) return;
+  const idx = (sy * w + sx) * 4;
+  const tR = d[idx], tG = d[idx + 1], tB = d[idx + 2], tA = d[idx + 3];
+  const fc = hexToRgb(state.brush.color);
+  const tol = 30;
+  const stack = [[sx, sy]];
+  const visited = new Uint8Array(w * h);
+  while (stack.length) {
+    const [x, y] = stack.pop();
+    if (x < 0 || y < 0 || x >= w || y >= h) continue;
+    const vi = y * w + x;
+    if (visited[vi]) continue; visited[vi] = 1;
+    const pi = vi * 4;
+    if (Math.abs(d[pi] - tR) + Math.abs(d[pi + 1] - tG) + Math.abs(d[pi + 2] - tB) + Math.abs(d[pi + 3] - tA) > tol * 4) continue;
+    d[pi] = fc.r; d[pi + 1] = fc.g; d[pi + 2] = fc.b; d[pi + 3] = 255;
+    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+  }
+  ctx.putImageData(imgData, 0, 0);
+  renderAll(); setStatus('បានចាក់ពណ៌');
+}
+
+function pickColor(pos) {
+  const l = getActiveLayer(); if (!l) return;
+  const px = Math.floor(pos.x), py = Math.floor(pos.y);
+  if (px < 0 || py < 0 || px >= l.canvas.width || py >= l.canvas.height) return;
+  const d = l.ctx.getImageData(px, py, 1, 1).data;
+  const hex = '#' + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, '0')).join('');
+  state.brush.color = hex;
+  $('optColor').value = hex;
+  $('colorPreview').style.background = hex;
+  setStatus('បានជ្រើសពណ៌ ' + hex);
+}
+
+function stampClone(pos) {
+  const l = getActiveLayer();
+  if (!l || !state.cloneSource) return;
+  const sw = state.brush.size;
+  l.ctx.save();
+  l.ctx.beginPath(); l.ctx.arc(pos.x, pos.y, sw / 2, 0, Math.PI * 2); l.ctx.clip();
+  l.ctx.globalAlpha = state.brush.opacity / 100;
+  l.ctx.drawImage(l.canvas, state.cloneSource.x - sw / 2, state.cloneSource.y - sw / 2, sw, sw, pos.x - sw / 2, pos.y - sw / 2, sw, sw);
+  l.ctx.restore(); renderAll();
+}
+
+function removeRedEye(pos) {
+  const l = getActiveLayer(); if (!l) return;
+  const r = state.brush.size;
+  const x = Math.max(0, Math.floor(pos.x - r / 2)), y = Math.max(0, Math.floor(pos.y - r / 2));
+  const w = Math.min(l.canvas.width - x, r), h = Math.min(l.canvas.height - y, r);
+  if (w <= 0 || h <= 0) return;
+  const imgData = l.ctx.getImageData(x, y, w, h);
+  const d = imgData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i] > 100 && d[i] > d[i + 1] * 1.5 && d[i] > d[i + 2] * 1.5) {
+      const g = (d[i + 1] + d[i + 2]) / 2;
+      d[i] = g; d[i + 1] = g; d[i + 2] = g;
+    }
+  }
+  l.ctx.putImageData(imgData, x, y);
+  renderAll(); setStatus('បានលុបភ្នែកក្រហម');
+}
+
+function magicWand(pos) {
+  const l = getActiveLayer(); if (!l) return;
+  const w = l.canvas.width, h = l.canvas.height;
+  const imgData = l.ctx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+  const sx = Math.floor(pos.x), sy = Math.floor(pos.y);
+  if (sx < 0 || sy < 0 || sx >= w || sy >= h) return;
+  const idx = (sy * w + sx) * 4;
+  const tR = d[idx], tG = d[idx + 1], tB = d[idx + 2];
+  const tol = 40;
+  let minX = w, minY = h, maxX = 0, maxY = 0;
+  const stack = [[sx, sy]];
+  const visited = new Uint8Array(w * h);
+  while (stack.length) {
+    const [x, y] = stack.pop();
+    if (x < 0 || y < 0 || x >= w || y >= h) continue;
+    const vi = y * w + x;
+    if (visited[vi]) continue; visited[vi] = 1;
+    const pi = vi * 4;
+    if (Math.abs(d[pi] - tR) + Math.abs(d[pi + 1] - tG) + Math.abs(d[pi + 2] - tB) > tol * 3) continue;
+    if (x < minX) minX = x; if (x > maxX) maxX = x;
+    if (y < minY) minY = y; if (y > maxY) maxY = y;
+    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+  }
+  if (maxX >= minX && maxY >= minY) {
+    state.selection = { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1, type: 'rect' };
+    drawOverlay(); setStatus('បានជ្រើសដោយដំបងវេទមន្ត');
+  }
+}
+
+function startSelection(e) {
+  const pos = getCanvasPos(e);
+  state.isSelecting = true;
+  state.selection = {
+    x: pos.x, y: pos.y, w: 0, h: 0,
+    type: state.tool === 'select-ellipse' ? 'ellipse' : state.tool === 'lasso' ? 'lasso' : 'rect'
+  };
+  if (state.tool === 'lasso') state.lassoPoints = [pos];
+}
+function updateSelection(pos) {
+  if (!state.selection) return;
+  if (state.selection.type === 'lasso') state.lassoPoints.push(pos);
+  else { state.selection.w = pos.x - state.selection.x; state.selection.h = pos.y - state.selection.y; }
+  drawOverlay();
+}
+function finishSelection() {
+  state.isSelecting = false;
+  if (state.selection && state.selection.type !== 'lasso') {
+    if (state.selection.w < 0) { state.selection.x += state.selection.w; state.selection.w = -state.selection.w; }
+    if (state.selection.h < 0) { state.selection.y += state.selection.h; state.selection.h = -state.selection.h; }
+  }
+  setStatus('បានបង្កើតជម្រើស');
+}
+function clearSelection() { state.selection = null; state.lassoPoints = []; drawOverlay(); }
+
+function applyCrop() {
+  const c = state.cropRect;
+  if (!c || Math.abs(c.w) < 5 || Math.abs(c.h) < 5) { state.isCropping = false; state.cropRect = null; drawOverlay(); return; }
+  const x = Math.min(c.x, c.x + c.w), y = Math.min(c.y, c.y + c.h);
+  const w = Math.abs(c.w), h = Math.abs(c.h);
+  state.layers.forEach(l => {
+    const nc = document.createElement('canvas');
+    nc.width = w; nc.height = h;
+    nc.getContext('2d').drawImage(l.canvas, x, y, w, h, 0, 0, w, h);
+    l.canvas = nc; l.ctx = nc.getContext('2d');
+  });
+  resizeCanvas(w, h);
+  state.isCropping = false; state.cropRect = null;
+  pushHistory(); setStatus('បានកាត់ត ' + w + ' × ' + h);
+}
+
+function pushHistory() {
+  const snapshot = {
+    layers: state.layers.map(l => ({
+      id: l.id, name: l.name, visible: l.visible, opacity: l.opacity, blend: l.blend,
+      data: l.canvas.toDataURL(), mask: l.mask ? l.mask.toDataURL() : null
+    })),
+    activeLayerId: state.activeLayerId,
+    canvasW: state.canvasW, canvasH: state.canvasH
+  };
+  state.history = state.history.slice(0, state.historyIndex + 1);
+  state.history.push(snapshot);
+  if (state.history.length > 30) state.history.shift();
+  state.historyIndex = state.history.length - 1;
+  updateInfo();
+}
+
+function restoreHistory(index) {
+  if (index < 0 || index >= state.history.length) return;
+  const snap = state.history[index];
+  state.historyIndex = index;
+  const promises = snap.layers.map(l => new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = snap.canvasW; c.height = snap.canvasH;
+      c.getContext('2d').drawImage(img, 0, 0);
+      if (l.mask) {
+        const m = new Image();
+        m.onload = () => {
+          const mc = document.createElement('canvas');
+          mc.width = snap.canvasW; mc.height = snap.canvasH;
+          mc.getContext('2d').drawImage(m, 0, 0);
+          res({ ...l, canvas: c, ctx: c.getContext('2d'), mask: mc });
+        };
+        m.src = l.mask;
+      } else res({ ...l, canvas: c, ctx: c.getContext('2d'), mask: null });
+    };
+    img.src = l.data;
+  }));
+  Promise.all(promises).then(layers => {
+    state.layers = layers;
+    state.activeLayerId = snap.activeLayerId;
+    resizeCanvas(snap.canvasW, snap.canvasH);
+    renderLayerList(); renderAll(); updateInfo();
+    setStatus('ប្រវត្តិ ' + (index + 1) + '/' + state.history.length);
+  });
+}
+function undo() { if (state.historyIndex > 0) restoreHistory(state.historyIndex - 1); else setStatus('គ្មានអ្វីត្រូវត្រឡប់'); }
+function redo() { if (state.historyIndex < state.history.length - 1) restoreHistory(state.historyIndex + 1); else setStatus('គ្មានអ្វីត្រូវធ្វើវិញ'); }
+
+function applyFilter(type) {
+  const l = getActiveLayer(); if (!l) return;
+  const ctx = l.ctx, w = l.canvas.width, h = l.canvas.height;
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+  switch (type) {
+    case 'grayscale':
+      for (let i = 0; i < d.length; i += 4) { const g = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; d[i] = d[i + 1] = d[i + 2] = g; } break;
+    case 'sepia':
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i + 1], b = d[i + 2];
+        d[i] = Math.min(255, r * .393 + g * .769 + b * .189);
+        d[i + 1] = Math.min(255, r * .349 + g * .686 + b * .168);
+        d[i + 2] = Math.min(255, r * .272 + g * .534 + b * .131);
+      } break;
+    case 'invert':
+      for (let i = 0; i < d.length; i += 4) { d[i] = 255 - d[i]; d[i + 1] = 255 - d[i + 1]; d[i + 2] = 255 - d[i + 2]; } break;
+    case 'vintage':
+      for (let i = 0; i < d.length; i += 4) {
+        d[i] = Math.min(255, d[i] * 1.15 + 15);
+        d[i + 1] = Math.min(255, d[i + 1] * .9 + 8);
+        d[i + 2] = Math.min(255, d[i + 2] * .75);
+      } break;
+    case 'warm':
+      for (let i = 0; i < d.length; i += 4) { d[i] = Math.min(255, d[i] + 28); d[i + 1] = Math.min(255, d[i + 1] + 12); } break;
+    case 'cool':
+      for (let i = 0; i < d.length; i += 4) { d[i + 2] = Math.min(255, d[i + 2] + 32); d[i] = Math.max(0, d[i] - 16); } break;
+    case 'noise':
+      for (let i = 0; i < d.length; i += 4) {
+        const n = (Math.random() - .5) * 45;
+        d[i] = Math.max(0, Math.min(255, d[i] + n));
+        d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + n));
+        d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + n));
+      } break;
+    case 'blur': applyBoxBlurData(imgData, 3); break;
+    case 'sharpen': applySharpenData(imgData); break;
+    case 'emboss': applyConvolution(ctx, w, h, [-2, -1, 0, -1, 1, 1, 0, 1, 2]); renderAll(); pushHistory(); setStatus('តម្រង៖ ចារិក'); return;
+    case 'edge': applyConvolution(ctx, w, h, [0, -1, 0, -1, 4, -1, 0, -1, 0]); renderAll(); pushHistory(); setStatus('តម្រង៖ គែម'); return;
+    case 'posterize':
+      for (let i = 0; i < d.length; i += 4) {
+        d[i] = Math.round(d[i] / 32) * 32;
+        d[i + 1] = Math.round(d[i + 1] / 32) * 32;
+        d[i + 2] = Math.round(d[i + 2] / 32) * 32;
+      } break;
+    case 'threshold':
+      for (let i = 0; i < d.length; i += 4) {
+        const v = (d[i] + d[i + 1] + d[i + 2]) / 3 > 128 ? 255 : 0;
+        d[i] = d[i + 1] = d[i + 2] = v;
+      } break;
+    case 'mosaic': applyMosaic(ctx, w, h, 12); renderAll(); pushHistory(); setStatus('តម្រង៖ ផ្គុំរូប'); return;
+    case 'vignette': applyVignette(ctx, w, h); renderAll(); pushHistory(); setStatus('តម្រង៖ វីញេត'); return;
+    case 'oil': applyOilPaint(ctx, w, h); renderAll(); pushHistory(); setStatus('តម្រង៖ ពណ៌ប្រេង'); return;
+  }
+  ctx.putImageData(imgData, 0, 0);
+  renderAll(); pushHistory();
+  setStatus('បានអនុវត្តតម្រង៖ ' + type);
+}
+
+function applyBoxBlurData(imgData, radius) {
+  const w = imgData.width, h = imgData.height, d = imgData.data;
+  const copy = new Uint8ClampedArray(d);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let r = 0, g = 0, b = 0, a = 0, c = 0;
+    for (let dy = -radius; dy <= radius; dy++) for (let dx = -radius; dx <= radius; dx++) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+      const idx = (ny * w + nx) * 4;
+      r += copy[idx]; g += copy[idx + 1]; b += copy[idx + 2]; a += copy[idx + 3]; c++;
+    }
+    const i = (y * w + x) * 4;
+    d[i] = r / c; d[i + 1] = g / c; d[i + 2] = b / c; d[i + 3] = a / c;
+  }
+}
+
+function applySharpenData(imgData) {
+  const w = imgData.width, h = imgData.height, d = imgData.data;
+  const copy = new Uint8ClampedArray(d);
+  const k = [0, -1, 0, -1, 5, -1, 0, -1, 0];
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    let r = 0, g = 0, b = 0, ki = 0;
+    for (let ky = -1; ky <= 1; ky++) for (let kx = -1; kx <= 1; kx++) {
+      const idx = ((y + ky) * w + (x + kx)) * 4;
+      const w2 = k[ki++];
+      r += copy[idx] * w2; g += copy[idx + 1] * w2; b += copy[idx + 2] * w2;
+    }
+    const i = (y * w + x) * 4;
+    d[i] = Math.max(0, Math.min(255, r));
+    d[i + 1] = Math.max(0, Math.min(255, g));
+    d[i + 2] = Math.max(0, Math.min(255, b));
+  }
+}
+
+function applyConvolution(ctx, w, h, kernel) {
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+  const copy = new Uint8ClampedArray(d);
+  const side = Math.round(Math.sqrt(kernel.length));
+  const half = Math.floor(side / 2);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let r = 0, g = 0, b = 0;
+    for (let ky = 0; ky < side; ky++) for (let kx = 0; kx < side; kx++) {
+      const nx = x + kx - half, ny = y + ky - half;
+      if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+      const k = kernel[ky * side + kx];
+      const idx = (ny * w + nx) * 4;
+      r += copy[idx] * k; g += copy[idx + 1] * k; b += copy[idx + 2] * k;
+    }
+    const i = (y * w + x) * 4;
+    d[i] = Math.max(0, Math.min(255, r));
+    d[i + 1] = Math.max(0, Math.min(255, g));
+    d[i + 2] = Math.max(0, Math.min(255, b));
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+function applyMosaic(ctx, w, h, size) {
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+  for (let y = 0; y < h; y += size) for (let x = 0; x < w; x += size) {
+    let r = 0, g = 0, b = 0, c = 0;
+    for (let dy = 0; dy < size && y + dy < h; dy++) for (let dx = 0; dx < size && x + dx < w; dx++) {
+      const i = ((y + dy) * w + x + dx) * 4;
+      r += d[i]; g += d[i + 1]; b += d[i + 2]; c++;
+    }
+    r /= c; g /= c; b /= c;
+    for (let dy = 0; dy < size && y + dy < h; dy++) for (let dx = 0; dx < size && x + dx < w; dx++) {
+      const i = ((y + dy) * w + x + dx) * 4;
+      d[i] = r; d[i + 1] = g; d[i + 2] = b;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+function applyVignette(ctx, w, h) {
+  const grad = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .3, w / 2, h / 2, Math.max(w, h) * .7);
+  grad.addColorStop(0, 'rgba(0,0,0,0)');
+  grad.addColorStop(1, 'rgba(0,0,0,0.75)');
+  ctx.save(); ctx.globalCompositeOperation = 'source-atop';
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); ctx.restore();
+}
+
+function applyOilPaint(ctx, w, h) {
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+  const copy = new Uint8ClampedArray(d);
+  const r = 2;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let rS = 0, gS = 0, bS = 0, c = 0;
+    for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+      const idx = (ny * w + nx) * 4;
+      rS += copy[idx]; gS += copy[idx + 1]; bS += copy[idx + 2]; c++;
+    }
+    const i = (y * w + x) * 4;
+    d[i] = rS / c; d[i + 1] = gS / c; d[i + 2] = bS / c;
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+function applyAdjustment() {
+  const l = getActiveLayer(); if (!l) return;
+  const ctx = l.ctx, w = l.canvas.width, h = l.canvas.height;
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+  const bright = parseInt($('adjBright').value) / 100;
+  const contrast = parseInt($('adjContrast').value) / 100;
+  const sat = parseInt($('adjSat').value) / 100;
+  const hueShift = parseInt($('adjHue').value);
+  for (let i = 0; i < d.length; i += 4) {
+    let r = d[i] * bright, g = d[i + 1] * bright, b = d[i + 2] * bright;
+    r = (r - 128) * contrast + 128; g = (g - 128) * contrast + 128; b = (b - 128) * contrast + 128;
+    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+    r = gray + (r - gray) * sat; g = gray + (g - gray) * sat; b = gray + (b - gray) * sat;
+    if (hueShift !== 0) {
+      const [h2, s2, l2] = rgbToHsl(r, g, b);
+      const [nr, ng, nb] = hslToRgb(((h2 + hueShift / 360) % 1 + 1) % 1, s2, l2);
+      r = nr; g = ng; b = nb;
+    }
+    d[i] = Math.max(0, Math.min(255, r));
+    d[i + 1] = Math.max(0, Math.min(255, g));
+    d[i + 2] = Math.max(0, Math.min(255, b));
+  }
+  ctx.putImageData(imgData, 0, 0);
+  renderAll(); pushHistory(); setStatus('បានអនុវត្តការកែសម្រួល');
+}
+
+function resetAdjustments() {
+  $('adjBright').value = 100; $('brightVal').textContent = '100';
+  $('adjContrast').value = 100; $('contrastVal').textContent = '100';
+  $('adjSat').value = 100; $('satVal').textContent = '100';
+  $('adjHue').value = 0; $('hueVal').textContent = '0';
+}
+
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > .5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  return [h, s, l];
+}
+function hslToRgb(h, s, l) {
+  let r, g, b;
+  if (s === 0) r = g = b = l;
+  else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1; if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+    const q = l < .5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1 / 3) * 255;
+    g = hue2rgb(p, q, h) * 255;
+    b = hue2rgb(p, q, h - 1 / 3) * 255;
+  }
+  return [r, g, b];
+}
+
+function flipH() {
+  state.layers.forEach(l => {
+    const c = document.createElement('canvas');
+    c.width = l.canvas.width; c.height = l.canvas.height;
+    const ctx = c.getContext('2d');
+    ctx.translate(c.width, 0); ctx.scale(-1, 1);
+    ctx.drawImage(l.canvas, 0, 0);
+    l.canvas = c; l.ctx = ctx;
+  });
+  renderAll(); pushHistory(); setStatus('បានត្រឡប់ផ្ដេក');
+}
+function flipV() {
+  state.layers.forEach(l => {
+    const c = document.createElement('canvas');
+    c.width = l.canvas.width; c.height = l.canvas.height;
+    const ctx = c.getContext('2d');
+    ctx.translate(0, c.height); ctx.scale(1, -1);
+    ctx.drawImage(l.canvas, 0, 0);
+    l.canvas = c; l.ctx = ctx;
+  });
+  renderAll(); pushHistory(); setStatus('បានត្រឡប់ឈរ');
+}
+function rotate90() {
+  const nw = state.canvasH, nh = state.canvasW;
+  state.layers.forEach(l => {
+    const c = document.createElement('canvas');
+    c.width = nw; c.height = nh;
+    const ctx = c.getContext('2d');
+    ctx.translate(nw / 2, nh / 2); ctx.rotate(Math.PI / 2);
+    ctx.drawImage(l.canvas, -l.canvas.width / 2, -l.canvas.height / 2);
+    l.canvas = c; l.ctx = c.getContext('2d');
+  });
+  resizeCanvas(nw, nh); pushHistory(); setStatus('បានបង្វិល 90°');
+}
+
+function hexToRgb(hex) { return { r: parseInt(hex.slice(1, 3), 16), g: parseInt(hex.slice(3, 5), 16), b: parseInt(hex.slice(5, 7), 16) }; }
+function updateInfo() {
+  $('infoSize').textContent = state.canvasW + ' × ' + state.canvasH;
+  const l = getActiveLayer();
+  $('infoLayer').textContent = l ? l.name : '—';
+  $('infoHistory').textContent = state.history.length;
+}
+function setStatus(msg) {
+  $('statusText').textContent = msg;
+  clearTimeout(setStatus._t);
+  setStatus._t = setTimeout(() => { $('statusText').textContent = 'ត្រៀមរួចរាល់ — Ghost King Edition'; }, 3000);
+}
+
+function init() {
+  initLayers();
+  resizeCanvas(800, 600);
+  renderAll();
+  pushHistory();
+  updateInfo();
+  bindEvents();
+  setStatus('សូមស្វាគមន៍មកកាន់ Ghost King Edition');
+}
+
+function bindEvents() {
+  document.querySelectorAll('.tool-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.tool = btn.dataset.tool;
+      const tk = TOOL_KH[state.tool] || { kh: 'ឧបករណ៍', en: 'Tool' };
+      $('toolName').innerHTML = tk.kh + '<span class="en">' + tk.en + '</span>';
+      clearSelection();
+      if (state.tool === 'clone') state.cloneSource = null;
+    });
+  });
+
+  const vp = $('canvasViewport');
+  vp.addEventListener('mousedown', e => {
+    if (state.spaceDown || e.button === 1) {
+      state.isPanning = true;
+      state.panStart = { x: e.clientX, y: e.clientY, panX: state.panX, panY: state.panY };
+      vp.style.cursor = 'grabbing'; e.preventDefault(); return;
+    }
+    if (['select-rect', 'select-ellipse', 'lasso'].includes(state.tool)) startSelection(e);
+    else startDraw(e);
+  });
+  vp.addEventListener('mousemove', e => {
+    if (state.isPanning && state.panStart) {
+      state.panX = state.panStart.panX + (e.clientX - state.panStart.x);
+      state.panY = state.panStart.panY + (e.clientY - state.panStart.y);
+      applyViewTransform(); return;
+    }
+    moveDraw(e);
+  });
+  window.addEventListener('mouseup', e => {
+    if (state.isPanning) {
+      state.isPanning = false; state.panStart = null;
+      vp.style.cursor = state.spaceDown ? 'grab' : 'crosshair';
+    }
+    endDraw(e);
+  });
+  vp.addEventListener('wheel', e => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      state.zoom = Math.max(0.1, Math.min(8, state.zoom + delta));
+      applyViewTransform();
+    } else {
+      state.panX -= e.deltaX; state.panY -= e.deltaY; applyViewTransform();
+    }
+  }, { passive: false });
+  mainCanvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  $('optSize').addEventListener('input', () => { state.brush.size = parseInt($('optSize').value); $('optSizeNum').value = state.brush.size; });
+  $('optSizeNum').addEventListener('input', () => { state.brush.size = parseInt($('optSizeNum').value) || 1; $('optSize').value = state.brush.size; });
+  $('optOpacity').addEventListener('input', () => { state.brush.opacity = parseInt($('optOpacity').value); $('optOpacityVal').textContent = state.brush.opacity; });
+  $('optColor').addEventListener('input', () => { state.brush.color = $('optColor').value; $('colorPreview').style.background = state.brush.color; });
+  $('optBlend').addEventListener('change', () => state.brush.blend = $('optBlend').value);
+  $('gridToggle').addEventListener('change', e => { state.gridVisible = e.target.checked; drawGrid(); });
+
+  $('zoomIn').addEventListener('click', () => { state.zoom = Math.min(8, state.zoom + 0.25); applyViewTransform(); });
+  $('zoomOut').addEventListener('click', () => { state.zoom = Math.max(0.1, state.zoom - 0.25); applyViewTransform(); });
+  $('zoomFit').addEventListener('click', fitCanvas);
+
+  $('menuNew').addEventListener('click', () => {
+    if (!confirm('ចាប់ផ្តើមឯកសារថ្មី? ការផ្លាស់ប្តូរដែលមិនបានរក្សាទុកនឹងបាត់បង់។')) return;
+    initLayers(); resizeCanvas(800, 600);
+    state.history = []; state.historyIndex = -1;
+    pushHistory(); renderAll(); setStatus('បានបង្កើតឯកសារថ្មី');
+  });
+  $('menuOpen').addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*';
+    input.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => {
+        const layer = createLayer('រូបភាព', img.width, img.height);
+        layer.ctx.drawImage(img, 0, 0);
+        state.layers.push(layer);
+        state.activeLayerId = layer.id;
+        resizeCanvas(img.width, img.height);
+        renderLayerList(); renderAll(); pushHistory();
+        setStatus('បានបើក ' + file.name);
+      };
+      img.src = URL.createObjectURL(file);
+    };
+    input.click();
+  });
+  $('menuSave').addEventListener('click', () => {
+    try {
+      const temp = document.createElement('canvas');
+      temp.width = state.canvasW; temp.height = state.canvasH;
+      const tctx = temp.getContext('2d');
+      state.layers.forEach(l => { if (l.visible) tctx.drawImage(l.canvas, 0, 0); });
+      localStorage.setItem('pixelforge_v3_save', temp.toDataURL('image/png'));
+      setStatus('បានរក្សាទុកក្នុង Browser');
+    } catch (e) { setStatus('រក្សាទុកបរាជ័យ'); }
+  });
+  $('menuExport').addEventListener('click', () => $('modalExport').hidden = false);
+  $('menuExport2').addEventListener('click', () => $('modalExport').hidden = false);
+  $('menuHelp').addEventListener('click', () => $('modalHelp').hidden = false);
+  $('helpClose').addEventListener('click', () => $('modalHelp').hidden = true);
+  $('modalHelp').addEventListener('click', e => { if (e.target.id === 'modalHelp') $('modalHelp').hidden = true; });
+
+  $('undoBtn').addEventListener('click', undo);
+  $('redoBtn').addEventListener('click', redo);
+
+  $('addLayer').addEventListener('click', () => {
+    const l = createLayer(); state.layers.push(l);
+    state.activeLayerId = l.id;
+    renderLayerList(); syncLayerControls(); updateInfo();
+  });
+  $('dupLayer').addEventListener('click', () => {
+    const l = getActiveLayer(); if (!l) return;
+    const nl = createLayer(l.name + ' ចម្លង', l.canvas.width, l.canvas.height);
+    nl.ctx.drawImage(l.canvas, 0, 0);
+    state.layers.push(nl); state.activeLayerId = nl.id;
+    renderLayerList(); renderAll();
+  });
+  $('maskLayer').addEventListener('click', () => {
+    const l = getActiveLayer(); if (!l) return;
+    if (state.selection) {
+      const m = document.createElement('canvas');
+      m.width = l.canvas.width; m.height = l.canvas.height;
+      const mctx = m.getContext('2d');
+      mctx.fillStyle = '#000'; mctx.fillRect(0, 0, m.width, m.height);
+      mctx.fillStyle = '#fff';
+      const s = state.selection;
+      if (s.type === 'ellipse') {
+        mctx.beginPath();
+        mctx.ellipse(s.x + s.w / 2, s.y + s.h / 2, Math.abs(s.w / 2), Math.abs(s.h / 2), 0, 0, Math.PI * 2);
+        mctx.fill();
+      } else mctx.fillRect(s.x, s.y, s.w, s.h);
+      l.mask = m;
+      renderAll(); pushHistory();
+      setStatus('បានអនុវត្តរបាំងពីជម្រើស');
+    } else {
+      alert('សូមបង្កើតជម្រើសជាមុនសិន');
+    }
+  });
+  $('delLayer').addEventListener('click', () => {
+    if (state.layers.length <= 1) { alert('មិនអាចលុបស្រទាប់ចុងក្រោយបានទេ'); return; }
+    state.layers = state.layers.filter(l => l.id !== state.activeLayerId);
+    state.activeLayerId = state.layers[state.layers.length - 1].id;
+    renderLayerList(); renderAll();
+  });
+  $('mergeLayer').addEventListener('click', () => {
+    if (state.layers.length < 2) return;
+    const merged = createLayer('បញ្ចូល', state.canvasW, state.canvasH);
+    state.layers.forEach(l => { if (l.visible) merged.ctx.drawImage(l.canvas, 0, 0); });
+    state.layers = [merged]; state.activeLayerId = merged.id;
+    renderLayerList(); renderAll(); pushHistory();
+    setStatus('បានបញ្ចូលស្រទាប់');
+  });
+  $('layerOpacity').addEventListener('input', () => {
+    const l = getActiveLayer();
+    if (l) { l.opacity = parseInt($('layerOpacity').value) / 100; $('layerOpacityVal').textContent = $('layerOpacity').value; renderAll(); }
+  });
+  $('layerBlend').addEventListener('change', () => {
+    const l = getActiveLayer();
+    if (l) { l.blend = $('layerBlend').value; renderAll(); }
+  });
+
+  $('adjBright').addEventListener('input', () => $('brightVal').textContent = $('adjBright').value);
+  $('adjContrast').addEventListener('input', () => $('contrastVal').textContent = $('adjContrast').value);
+  $('adjSat').addEventListener('input', () => $('satVal').textContent = $('adjSat').value);
+  $('adjHue').addEventListener('input', () => $('hueVal').textContent = $('adjHue').value);
+  $('applyAdj').addEventListener('click', applyAdjustment);
+  $('resetAdj').addEventListener('click', resetAdjustments);
+
+  document.querySelectorAll('[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => applyFilter(btn.dataset.filter));
+  });
+
+  $('flipH').addEventListener('click', flipH);
+  $('flipV').addEventListener('click', flipV);
+  $('rotate90').addEventListener('click', rotate90);
+  $('resizeBtn').addEventListener('click', () => {
+    $('resizeW').value = state.canvasW; $('resizeH').value = state.canvasH;
+    $('modalResize').hidden = false;
+  });
+
+  document.querySelectorAll('.panel-section h4').forEach(h => {
+    h.addEventListener('click', () => h.parentElement.classList.toggle('collapsed'));
+  });
+
+  $('resizeCancel').addEventListener('click', () => $('modalResize').hidden = true);
+  $('resizeApply').addEventListener('click', () => {
+    const w = parseInt($('resizeW').value), h = parseInt($('resizeH').value);
+    if (w < 1 || h < 1) return;
+    state.layers.forEach(l => {
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(l.canvas, 0, 0, w, h);
+      l.canvas = c; l.ctx = c.getContext('2d');
+    });
+    resizeCanvas(w, h); $('modalResize').hidden = true; pushHistory();
+    setStatus('បានប្តូរទំហំទៅ ' + w + ' × ' + h);
+  });
+  $('modalResize').addEventListener('click', e => { if (e.target.id === 'modalResize') $('modalResize').hidden = true; });
+
+  $('exportQuality').addEventListener('input', () => $('qualityVal').textContent = $('exportQuality').value);
+  $('exportCancel').addEventListener('click', () => $('modalExport').hidden = true);
+  $('exportConfirm').addEventListener('click', exportImage);
+  $('modalExport').addEventListener('click', e => { if (e.target.id === 'modalExport') $('modalExport').hidden = true; });
+
+  $('textCancel').addEventListener('click', () => $('modalText').hidden = true);
+  $('textApply').addEventListener('click', applyText);
+  $('modalText').addEventListener('click', e => { if (e.target.id === 'modalText') $('modalText').hidden = true; });
+
+  $('shapeCancel').addEventListener('click', () => { $('modalShape').hidden = true; state.currentShape = null; state.shapeStart = null; });
+  $('shapeApply').addEventListener('click', applyShape);
+  $('modalShape').addEventListener('click', e => { if (e.target.id === 'modalShape') $('modalShape').hidden = true; });
+
+  /* ============ KEYBOARD SHORTCUTS with Function Keys ============ */
+  window.addEventListener('keydown', e => {
+    if (e.key === ' ') state.spaceDown = true;
+
+    // Function keys F1-F12
+    if (e.key === 'F1') { e.preventDefault(); $('modalHelp').hidden = false; return; }
+    if (e.key === 'F2') {
+      e.preventDefault();
+      const l = getActiveLayer();
+      if (l) { const n = prompt('ប្តូរឈ្មោះស្រទាប់:', l.name); if (n) { l.name = n; renderLayerList(); updateInfo(); } }
+      return;
+    }
+    if (e.key === 'F3') { e.preventDefault(); state.gridVisible = !state.gridVisible; $('gridToggle').checked = state.gridVisible; drawGrid(); setStatus(state.gridVisible ? 'បង្ហាញក្រឡា' : 'លាក់ក្រឡា'); return; }
+    if (e.key === 'F4') { e.preventDefault(); state.rulersVisible = !state.rulersVisible; $('rulerH').classList.toggle('show', state.rulersVisible); $('rulerV').classList.toggle('show', state.rulersVisible); setStatus(state.rulersVisible ? 'បង្ហាញបន្ទាត់វាស់' : 'លាក់បន្ទាត់វាស់'); return; }
+    if (e.key === 'F5') { e.preventDefault(); $('menuNew').click(); return; }
+    if (e.key === 'F6') { e.preventDefault(); $('menuOpen').click(); return; }
+    if (e.key === 'F7') { e.preventDefault(); $('menuSave').click(); return; }
+    if (e.key === 'F8') { e.preventDefault(); $('modalExport').hidden = false; return; }
+    if (e.key === 'F9') { e.preventDefault(); $('section-layers').classList.toggle('collapsed'); return; }
+    if (e.key === 'F10') { e.preventDefault(); $('section-adjust').classList.toggle('collapsed'); return; }
+    if (e.key === 'F11') { e.preventDefault(); $('section-filters').classList.toggle('collapsed'); return; }
+    if (e.key === 'F12') { e.preventDefault(); fitCanvas(); return; }
+
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === 'z') { e.preventDefault(); undo(); }
+      if (e.key === 'y' || (e.shiftKey && e.key === 'z')) { e.preventDefault(); redo(); }
+      if (e.key === 's') { e.preventDefault(); $('menuSave').click(); }
+      if (e.key === 'e') { e.preventDefault(); $('modalExport').hidden = false; }
+      if (e.key === 'n') { e.preventDefault(); $('menuNew').click(); }
+      if (e.key === 'o') { e.preventDefault(); $('menuOpen').click(); }
+      if (e.key === 'd') { e.preventDefault(); clearSelection(); }
+      if (e.key === 'a') {
+        e.preventDefault();
+        state.selection = { x: 0, y: 0, w: state.canvasW, h: state.canvasH, type: 'rect' };
+        drawOverlay(); setStatus('បានជ្រើសទាំងអស់');
+      }
+      if (e.key === '=' || e.key === '+') { e.preventDefault(); $('zoomIn').click(); }
+      if (e.key === '-') { e.preventDefault(); $('zoomOut').click(); }
+      if (e.key === '0') { e.preventDefault(); fitCanvas(); }
+    }
+
+    if (e.key === 'Escape') {
+      $('modalHelp').hidden = true; $('modalResize').hidden = true; $('modalExport').hidden = true;
+      $('modalText').hidden = true; $('modalShape').hidden = true;
+      clearSelection();
+      state.isCropping = false; state.cropRect = null;
+      state.currentShape = null; state.shapeStart = null;
+      drawOverlay();
+    }
+
+    const shortcuts = { b: 'brush', e: 'eraser', g: 'fill', i: 'picker', m: 'select-rect', l: 'lasso', v: 'move', c: 'crop', t: 'text', w: 'wand' };
+    if (shortcuts[e.key] && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'SELECT') {
+      const btn = document.querySelector(`[data-tool="${shortcuts[e.key]}"]`);
+      if (btn) btn.click();
+    }
+  });
+  window.addEventListener('keyup', e => { if (e.key === ' ') state.spaceDown = false; });
+}
+
+function applyText() {
+  const text = $('textContent').value;
+  if (!text || !state.textPos) return;
+  const l = getActiveLayer(); if (!l) return;
+  l.ctx.save();
+  l.ctx.fillStyle = $('textColor').value;
+  l.ctx.font = $('textStyle').value + ' ' + $('textSize').value + 'px ' + $('textFont').value;
+  l.ctx.textBaseline = 'top';
+  l.ctx.shadowColor = 'rgba(0,0,0,.4)';
+  l.ctx.shadowBlur = 3;
+  l.ctx.fillText(text, state.textPos.x, state.textPos.y);
+  l.ctx.restore();
+  $('modalText').hidden = true;
+  renderAll(); pushHistory();
+  setStatus('បានបន្ថែមអក្សរ');
+}
+
+function applyShape() {
+  if (!state.currentShape) return;
+  const s = state.currentShape;
+  const x = Math.min(s.x, s.x + s.w), y = Math.min(s.y, s.y + s.h);
+  const w = Math.abs(s.w), h = Math.abs(s.h);
+  const l = getActiveLayer(); if (!l) return;
+  const ctx = l.ctx;
+  ctx.save();
+  ctx.fillStyle = $('shapeFill').value;
+  if ($('shapeStroke').checked) {
+    ctx.strokeStyle = $('shapeStrokeColor').value;
+    ctx.lineWidth = parseInt($('shapeStrokeWidth').value) || 2;
+  }
+  const type = $('shapeType').value;
+  ctx.beginPath();
+  if (type === 'rect') ctx.rect(x, y, w, h);
+  else if (type === 'ellipse') ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+  else if (type === 'line') { ctx.moveTo(x, y); ctx.lineTo(x + w, y + h); }
+  else if (type === 'triangle') { ctx.moveTo(x + w / 2, y); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); ctx.closePath(); }
+  else if (type === 'star') {
+    const cx = x + w / 2, cy = y + h / 2, R = Math.min(w, h) / 2, r = R / 2;
+    for (let i = 0; i < 10; i++) {
+      const a = (Math.PI / 5) * i - Math.PI / 2;
+      const rr = i % 2 === 0 ? R : r;
+      ctx.lineTo(cx + rr * Math.cos(a), cy + rr * Math.sin(a));
+    }
+    ctx.closePath();
+  }
+  if (type === 'line') ctx.stroke();
+  else { ctx.fill(); if ($('shapeStroke').checked) ctx.stroke(); }
+  ctx.restore();
+  $('modalShape').hidden = true;
+  state.currentShape = null; state.shapeStart = null;
+  renderAll(); pushHistory();
+  setStatus('បានគូររូបរាង');
+}
+
+function exportImage() {
+  const format = $('exportFormat').value;
+  const quality = parseInt($('exportQuality').value) / 100;
+  const filename = ($('exportFilename').value.trim() || 'pixelforge');
+  const temp = document.createElement('canvas');
+  temp.width = state.canvasW; temp.height = state.canvasH;
+  const tctx = temp.getContext('2d');
+  state.layers.forEach(l => { if (l.visible) { tctx.globalAlpha = l.opacity; tctx.drawImage(l.canvas, 0, 0); } });
+  const url = temp.toDataURL(format, quality);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename + '.' + format.split('/')[1];
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  $('modalExport').hidden = true;
+  setStatus('បាននាំចេញ ' + filename);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
